@@ -251,7 +251,7 @@ export function documentRequirements(draft: ApplicationDraft): DocumentRequireme
     {
       id: "birth",
       title: "Proof of date of birth",
-      purpose: "Supports the date of birth entered in Personal & history.",
+      purpose: "Supports the date of birth you entered in Personal & history.",
       state: "ready",
       digitalStatus: draft.birthDocument === "shared" ? "Shared through DigiLocker" : "Not digitally shared",
       appointmentAction: draft.birthDocument === "shared" ? "Digitally shared in this mock journey" : "Keep the selected document ready for verification",
@@ -267,7 +267,7 @@ export function documentRequirements(draft: ApplicationDraft): DocumentRequireme
     {
       id: "category",
       title: "Evidence for passport category",
-      purpose: "Supports the category guidance shown in Passport options.",
+      purpose: `Supports the category worked out from your education and employment answers. Current guidance: ${category.label}.`,
       state: draft.educationDocument === "missing" ? "attention" : category.state,
       digitalStatus:
         draft.educationDocument === "shared"
@@ -300,6 +300,72 @@ export function readinessItems(draft: ApplicationDraft): ReadinessItem[] {
     { title: "Present address", state: address.state, detail: address.title, action: "Review Address & office", step: 3, blocking: address.state !== "ready" },
     { title: "Supporting documents", state: documentsState, detail: documentsState === "ready" ? "Every required mock document has a preparation status" : "One or more documents still need a decision", action: "Open Documents", step: 5, blocking: documentsState !== "ready" },
   ]
+}
+
+export const bookletChoices = [
+  {
+    value: "36" as const,
+    title: "36 pages",
+    detail: "Enough blank pages for occasional travel.",
+  },
+  {
+    value: "60" as const,
+    title: "60 pages",
+    detail: "More blank pages for visas and entry stamps.",
+  },
+]
+
+export const bookletDifference =
+  "Only the number of blank pages and the fee differ. Choose 60 pages if you expect frequent travel before the passport is renewed."
+
+/**
+ * The official form prints a passport name as two lines: Surname, then Given
+ * Name(s) — where Given Name(s) means the first name followed by the complete
+ * middle name. This preview exists so a formatting mistake is visible while it
+ * can still be corrected, not after printing.
+ */
+/** Reviewing an ISO date for mistakes is harder than reading a written one. */
+export function formatBirthDate(value: string) {
+  const [year, month, day] = value.split("-")
+  if (!year || !month || !day) return value
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ]
+  const name = months[Number(month) - 1]
+  if (!name) return value
+  return `${Number(day)} ${name} ${year}`
+}
+
+export function passportNamePreview(draft: ApplicationDraft) {
+  const surname = draft.surname.trim().replace(/\s+/g, " ").toUpperCase()
+  const given = draft.givenName.trim().replace(/\s+/g, " ").toUpperCase()
+  return {
+    surname,
+    given,
+    hasSurname: surname.length > 0,
+    isEmpty: surname.length === 0 && given.length === 0,
+  }
+}
+
+/**
+ * Formatting notes only. These repeat instructions printed on the official
+ * form; they do not determine whether a name is acceptable.
+ */
+export function nameFormatNotes(draft: ApplicationDraft): string[] {
+  const given = draft.givenName.trim()
+  const surname = draft.surname.trim()
+  const notes: string[] = []
+  if (given.includes(".") || surname.includes(".")) {
+    notes.push("Remove full stops. Write every name in full instead of an initial.")
+  }
+  if (/^(mr|mrs|ms|miss|dr|shri|smt|sri|kum)\b/i.test(given)) {
+    notes.push("Remove titles such as Mr, Mrs, Dr or Shri. Enter names only.")
+  }
+  if (given && !surname) {
+    notes.push("With Surname left blank, your complete name must appear under Given name(s).")
+  }
+  return notes
 }
 
 export function bookletFee(booklet: ApplicationDraft["booklet"]) {

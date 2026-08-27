@@ -11,6 +11,10 @@
   --line: #d7dde5;
   --success: #198038;
   --warning: #b35300;
+  /* One padding and one accent width for every content block. A box that needs
+     different geometry has to justify it, rather than acquiring it by drift. */
+  --block-pad: 1.25rem;
+  --accent-bar: 4px;
 }
 
 * {
@@ -308,9 +312,9 @@ svg {
   justify-content: space-between;
   align-items: center;
   gap: 1.5rem;
-  padding: 1.15rem;
-  background: #f2f4f7;
-  border: 1px solid #cfd5dc;
+  padding: var(--block-pad);
+  background: #f8fafc;
+  border: 1px solid var(--line);
 }
 .tatkaal-panel div {
   display: grid;
@@ -430,9 +434,15 @@ svg {
   gap: 1.2rem;
   padding-top: 1.25rem;
 }
-.split-actions,
 .step-actions {
   justify-content: space-between;
+  gap: 1rem;
+}
+/* A declaration-bearing submit is not the ninth "Continue". It reads as
+   terminal: heavier, wider, and without the forward arrow. */
+.step-actions--submit [data-slot="button"]:last-child {
+  min-width: 16rem;
+  font-weight: 700;
 }
 
 .workspace {
@@ -667,6 +677,134 @@ svg {
   display: grid;
   gap: 1.35rem;
 }
+/**
+ * Base for every content block. The four kind modifiers below set the accent,
+ * and they use the same palette as the matching .kind-* tag so the label above
+ * a block and the block itself always agree.
+ */
+.block {
+  display: grid;
+  gap: 0.6rem;
+  padding: var(--block-pad);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+/**
+ * Two axes have to stay visually separate, or they cancel each other out:
+ *   kind  = what sort of thing this block is  -> the left accent bar
+ *   state = ready / needs attention / review  -> a filled tint plus an icon
+ * The kind bar therefore sits on a neutral surface and never uses the state
+ * fills, so a block can carry both signals at once without ambiguity.
+ */
+.block--choice {
+  border-left: var(--accent-bar) solid var(--civic-blue);
+}
+.block--information {
+  border-left: var(--accent-bar) solid #64748b;
+}
+.block--derived {
+  border-left: var(--accent-bar) solid var(--civic-gold);
+}
+.block--evidence {
+  border-left: var(--accent-bar) solid var(--success);
+}
+/* Earned difference: the legal declaration carries more weight than the
+   information around it, and the copy on that screen says so. */
+.block--emphasis {
+  background: #f8fafc;
+  border-left-color: var(--civic-navy);
+}
+/* A block laid out as icon + text + action, used where the block reports a
+   result rather than collecting an answer. */
+.block--row {
+  grid-template-columns: auto 1fr auto;
+  gap: 1rem;
+  align-items: center;
+}
+.block--row > div {
+  display: grid;
+  gap: 0.2rem;
+}
+.block--row p {
+  margin: 0.25rem 0 0;
+  color: var(--muted-ink);
+}
+
+.kind-tag {
+  display: inline-block;
+  /* Every .block is a grid, and a grid item would otherwise stretch the pill to
+     the full column width. A label has to hug its text to read as a label. */
+  justify-self: start;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--line);
+  color: var(--muted-ink);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.kind-choice {
+  color: #0b4a8f;
+  background: var(--soft-blue);
+  border-color: #a6c8ff;
+}
+.kind-information {
+  color: #334155;
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+.kind-derived {
+  color: #6b4708;
+  background: #fff4e5;
+  border-color: #f3b76d;
+}
+.kind-evidence {
+  color: #166534;
+  background: #edf9f0;
+  border-color: #8dce9e;
+}
+.section-heading .kind-tag {
+  margin-bottom: 0.5rem;
+}
+.name-preview > strong {
+  color: var(--civic-navy);
+}
+.name-preview dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.9rem;
+  margin: 0;
+}
+.name-preview dt {
+  color: var(--muted-ink);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.name-preview dd {
+  margin: 0.2rem 0 0;
+  color: var(--civic-navy);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.name-preview dd em {
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+.name-preview > p {
+  margin: 0;
+  color: var(--muted-ink);
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+[data-slot="alert-description"] ul {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.3rem 0 0;
+  padding-left: 1.1rem;
+}
 .section-heading h2 {
   margin: 0;
   color: var(--civic-navy);
@@ -726,8 +864,11 @@ svg {
   background: white;
   cursor: pointer;
 }
+/* The selected state thickens the edge with an inset ring rather than a wider
+   border, so the label does not shift by a pixel on every click. */
 .radio-card[data-checked="true"] {
-  border: 2px solid var(--civic-blue);
+  border-color: var(--civic-blue);
+  box-shadow: inset 0 0 0 1px var(--civic-blue);
   background: var(--soft-blue);
 }
 .radio-card span {
@@ -744,26 +885,6 @@ svg {
 }
 .inline-question .radio-cards {
   grid-template-columns: repeat(3, minmax(6rem, 9rem));
-}
-.office-context,
-.indicative {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 1rem;
-  align-items: center;
-  padding: 1.25rem;
-  color: var(--civic-navy);
-  background: var(--soft-blue);
-  border-left: 4px solid var(--civic-blue);
-}
-.office-context div {
-  display: grid;
-  gap: 0.2rem;
-}
-.office-context p,
-.indicative p {
-  margin: 0.25rem 0 0;
-  color: var(--muted-ink);
 }
 .state-ready {
   color: var(--success);
@@ -787,11 +908,13 @@ svg {
   border-color: #a6c8ff;
 }
 
+/* Every row on the Documents screen is evidence, so the page states that once
+   and the rows stay plain. Six green-barred blocks would be noise, not meaning. */
 .document-row {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 1rem;
-  padding: 1.25rem 0;
+  padding: var(--block-pad) 0;
   border-bottom: 1px solid var(--line);
 }
 .document-row > svg {
@@ -830,17 +953,18 @@ svg {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.9rem;
-  padding: 1rem;
+  padding: var(--block-pad);
+  background: var(--surface);
   border: 1px solid var(--line);
 }
 .readiness-item.ready {
-  border-left: 4px solid var(--success);
+  border-left: var(--accent-bar) solid var(--success);
 }
 .readiness-item.attention {
-  border-left: 4px solid var(--warning);
+  border-left: var(--accent-bar) solid var(--warning);
 }
 .readiness-item.review {
-  border-left: 4px solid var(--civic-blue);
+  border-left: var(--accent-bar) solid var(--civic-blue);
 }
 .readiness-item h2 {
   margin: 0;
@@ -1267,12 +1391,14 @@ svg {
   .inline-question .radio-cards {
     grid-template-columns: repeat(3, 1fr);
   }
-  .office-context,
-  .indicative {
+  .block--row {
     grid-template-columns: auto 1fr;
   }
-  .indicative button {
+  .block--row [data-slot="button"] {
     grid-column: 1 / -1;
+  }
+  .step-actions--submit [data-slot="button"]:last-child {
+    min-width: 0;
   }
   .document-title {
     flex-direction: column;
