@@ -571,7 +571,7 @@ function SignInScreen({
           <h1>First ordinary passport</h1>
           <p>
             {resuming
-              ? "Sign in to reopen the draft you already started. It resumes at the stage you left."
+              ? "Sign in to reach your saved applications. Any draft reopens at the stage you left."
               : "Your route is ready. Sign in or create an account to start a draft that can be resumed later."}
           </p>
           <ul>
