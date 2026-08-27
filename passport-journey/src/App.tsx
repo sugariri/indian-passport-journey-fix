@@ -1440,8 +1440,7 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
       next={next}
       nextDisabled={
         draft.familySituation !== "standard" ||
-        !draft.fatherName ||
-        !draft.motherName
+        (!draft.fatherName && !draft.motherName)
       }
     >
       <section className="form-section">
@@ -1449,7 +1448,9 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
           kind="information"
           title="Which situation applies to you?"
         >
-          Your answer decides which name fields the official form requires.
+          The official form lists father, mother and legal-guardian name
+          fields and needs at least one. This question is ours, and only
+          decides which of them you are shown.
         </SectionHeading>
         <RadioCards
           name="Family situation"
@@ -1460,13 +1461,13 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
           options={[
             {
               value: "standard",
-              title: "Both parents' details apply",
-              detail: "The route demonstrated in this prototype.",
+              title: "A parent's details apply",
+              detail: "Father, mother, or both. The route shown here.",
             },
             {
               value: "guardian",
               title: "A legal guardian applies",
-              detail: "Different official fields are required.",
+              detail: "A real field on the official form; not built here.",
             },
             {
               value: "help",
@@ -1482,13 +1483,13 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
           <Separator />
           <section className="form-section">
             <SectionHeading kind="information" title="Parents' names">
-              Each name follows the same two-field rule as your own: given
-              name(s) first, including any middle name, then the surname.
+              One of these is enough. Each follows the same two-field rule as
+              your own: given name(s) first, then the surname.
             </SectionHeading>
             <div className="form-grid">
               <Field
                 label="Father's name"
-                help="Given name(s) followed by surname, written in full."
+                help="Given name(s) followed by surname. Leave blank if it should not be printed."
               >
                 <Input
                   value={draft.fatherName}
@@ -1497,7 +1498,7 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
               </Field>
               <Field
                 label="Mother's name"
-                help="Given name(s) followed by surname, written in full."
+                help="Given name(s) followed by surname. Leave blank if it should not be printed."
               >
                 <Input
                   value={draft.motherName}
