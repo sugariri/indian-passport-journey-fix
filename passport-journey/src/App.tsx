@@ -90,13 +90,18 @@ import {
   appointmentDays,
   appointmentSlots,
   applicationReference,
+  bookletChoices,
+  bookletDifference,
   bookletFee,
   categoryGuidance,
   centres,
   chapterRanges,
   defaultDraft,
   documentRequirements,
+  formatBirthDate,
   liveApplication,
+  nameFormatNotes,
+  passportNamePreview,
   readinessItems,
   sampleApplications,
   steps,
@@ -249,6 +254,39 @@ function StateIcon({ state }: { state: EvidenceState }) {
   return <CircleHelp className="state-review" />;
 }
 
+/**
+ * Every block on a stage is one of four kinds. Screens felt arbitrary because a
+ * choice the applicant makes, a fact they report, a result the system works out
+ * and the evidence behind it were all presented as equivalent. Naming the kind
+ * is what makes a grouping defensible.
+ */
+type BlockKind = "choice" | "information" | "derived" | "evidence";
+
+const blockKindLabel: Record<BlockKind, string> = {
+  choice: "Your choice",
+  information: "Your information",
+  derived: "Worked out from your answers",
+  evidence: "Supporting document",
+};
+
+function SectionHeading({
+  kind,
+  title,
+  children,
+}: {
+  kind: BlockKind;
+  title: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="section-heading">
+      <span className={`kind-tag kind-${kind}`}>{blockKindLabel[kind]}</span>
+      <h2>{title}</h2>
+      {children && <p>{children}</p>}
+    </div>
+  );
+}
+
 function StartScreen({
   begin,
   resume,
@@ -289,7 +327,9 @@ function StartScreen({
           </div>
           <Card className="route-card">
             <CardHeader>
-              <CardTitle><h2>What do you need help with?</h2></CardTitle>
+              <CardTitle>
+                <h2>What do you need help with?</h2>
+              </CardTitle>
               <CardDescription>
                 Answer two simple questions to find the passport service that
                 applies to you.
@@ -519,7 +559,9 @@ function SignInScreen({
         </section>
         <Card className="signin-card">
           <CardHeader>
-            <CardTitle><h2>Sign in to continue</h2></CardTitle>
+            <CardTitle>
+              <h2>Sign in to continue</h2>
+            </CardTitle>
             <CardDescription>
               This prototype uses a simulated account. No password, OTP, or
               government system is used.
@@ -549,7 +591,7 @@ function SignInScreen({
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter className="split-actions">
+          <CardFooter className="step-actions">
             <Button variant="outline" onClick={back}>
               <ArrowLeft />
               Back
@@ -1110,6 +1152,7 @@ function StepFrame({
   next,
   nextLabel = "Continue",
   nextDisabled = false,
+  submit = false,
 }: {
   eyebrow: string;
   title: string;
@@ -1119,6 +1162,8 @@ function StepFrame({
   next?: () => void;
   nextLabel?: string;
   nextDisabled?: boolean;
+  /** Terminal action rather than forward navigation: no arrow, heavier weight. */
+  submit?: boolean;
 }) {
   return (
     <>
@@ -1130,7 +1175,9 @@ function StepFrame({
       <Card className="form-card">
         <CardContent>{children}</CardContent>
         {(back || next) && (
-          <CardFooter className="step-actions">
+          <CardFooter
+            className={`step-actions${submit ? " step-actions--submit" : ""}`}
+          >
             {back ? (
               <Button variant="outline" onClick={back}>
                 <ArrowLeft />
@@ -1142,7 +1189,7 @@ function StepFrame({
             {next && (
               <Button onClick={next} disabled={nextDisabled}>
                 {nextLabel}
-                <ArrowRight />
+                {!submit && <ArrowRight />}
               </Button>
             )}
           </CardFooter>
@@ -1178,6 +1225,51 @@ function HistoryQuestion({
   );
 }
 
+function NamePreview({ draft }: { draft: ApplicationDraft }) {
+  const preview = passportNamePreview(draft);
+  const notes = nameFormatNotes(draft);
+  if (preview.isEmpty) return null;
+  return (
+    <div className="name-preview block block--derived">
+      <span className="kind-tag kind-derived">{blockKindLabel.derived}</span>
+      <strong>Your passport would read</strong>
+      <dl>
+        <div>
+          <dt>Surname</dt>
+          <dd>
+            {preview.hasSurname ? (
+              preview.surname
+            ) : (
+              <em>blank — you do not use a surname</em>
+            )}
+          </dd>
+        </div>
+        <div>
+          <dt>Given name(s)</dt>
+          <dd>{preview.given || <em>not entered yet</em>}</dd>
+        </div>
+      </dl>
+      <p>
+        Check this against the record you will carry. A name split across the
+        wrong field is corrected at the passport office, not here.
+      </p>
+      {notes.length > 0 && (
+        <Alert className="evidence-attention">
+          <AlertCircle />
+          <AlertTitle>Check how the name is written</AlertTitle>
+          <AlertDescription>
+            <ul>
+              {notes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+    </div>
+  );
+}
+
 function PersonalStep({ draft, update, next, back }: StepProps) {
   const blocked =
     !draft.givenName ||
@@ -1193,15 +1285,15 @@ function PersonalStep({ draft, update, next, back }: StepProps) {
       nextDisabled={blocked}
     >
       <section className="form-section">
-        <div className="section-heading">
-          <h2>Personal details</h2>
-          <p>
-            Use the spelling and dates from the supporting records you plan to
-            provide.
-          </p>
-        </div>
+        <SectionHeading kind="information" title="Your name">
+          The official form uses two name fields, not three. There is no
+          separate middle-name box, which is where most name mistakes start.
+        </SectionHeading>
         <div className="form-grid">
-          <Field label="Given name">
+          <Field
+            label="Given name(s)"
+            help="Your first name followed by your complete middle name, if you have one. Write names in full — no initials, no titles."
+          >
             <Input
               value={draft.givenName}
               onChange={(e) => update("givenName", e.target.value)}
@@ -1209,13 +1301,23 @@ function PersonalStep({ draft, update, next, back }: StepProps) {
           </Field>
           <Field
             label="Surname"
-            help="Leave blank only if it is blank on your record."
+            help="Leave this blank only if you do not use a surname. In that case your complete name goes under Given name(s)."
           >
             <Input
               value={draft.surname}
               onChange={(e) => update("surname", e.target.value)}
             />
           </Field>
+        </div>
+        <NamePreview draft={draft} />
+      </section>
+      <Separator />
+      <section className="form-section">
+        <SectionHeading kind="information" title="Birth details">
+          Use the date and place exactly as they appear on the record you plan
+          to provide as proof of date of birth.
+        </SectionHeading>
+        <div className="form-grid">
           <Field label="Date of birth">
             <Input
               type="date"
@@ -1233,13 +1335,11 @@ function PersonalStep({ draft, update, next, back }: StepProps) {
       </section>
       <Separator />
       <section className="form-section">
-        <div className="section-heading">
-          <h2>Passport history</h2>
-          <p>
-            Fresh applicants can still have other passport or application
-            history, so these questions remain conditional.
-          </p>
-        </div>
+        <SectionHeading kind="information" title="Passport history">
+          Three questions, because a fresh applicant can still have other
+          passport or application history. Answering No to all three keeps you
+          on this route.
+        </SectionHeading>
         <HistoryQuestion
           label="Have you ever held an ordinary Indian passport?"
           value={draft.heldOrdinaryPassport}
@@ -1290,27 +1390,23 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
     <StepFrame
       eyebrow="About you · 2 of 3"
       title="Family details"
-      intro="Provide the family information required for this application. Alternative situations stay visible instead of being hidden in notes."
+      intro="Answer which situation applies first. Only the fields that belong to that situation are then shown."
       back={back}
       next={next}
-      nextDisabled={!draft.fatherName || !draft.motherName}
+      nextDisabled={
+        draft.familySituation !== "standard" ||
+        !draft.fatherName ||
+        !draft.motherName
+      }
     >
-      <div className="form-grid">
-        <Field label="Father or legal parent name">
-          <Input
-            value={draft.fatherName}
-            onChange={(e) => update("fatherName", e.target.value)}
-          />
-        </Field>
-        <Field label="Mother or legal parent name">
-          <Input
-            value={draft.motherName}
-            onChange={(e) => update("motherName", e.target.value)}
-          />
-        </Field>
-      </div>
-      <Separator />
-      <Field label="Does the standard parent-details route apply to you?">
+      <section className="form-section">
+        <SectionHeading
+          kind="information"
+          title="Which situation applies to you?"
+        >
+          This is asked before the name fields, because the answer decides which
+          fields the official form actually requires.
+        </SectionHeading>
         <RadioCards
           name="Family situation"
           value={draft.familySituation}
@@ -1318,19 +1414,63 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
             update("familySituation", v as ApplicationDraft["familySituation"])
           }
           options={[
-            { value: "standard", title: "Yes" },
-            { value: "guardian", title: "I need the guardian route" },
-            { value: "help", title: "I need help answering" },
+            {
+              value: "standard",
+              title: "Both parents' details apply",
+              detail: "The route demonstrated in this prototype.",
+            },
+            {
+              value: "guardian",
+              title: "A legal guardian applies",
+              detail: "Different official fields are required.",
+            },
+            {
+              value: "help",
+              title: "I need help answering",
+              detail: "Single-parent, adoption or other situations.",
+            },
           ]}
         />
-      </Field>
-      {draft.familySituation !== "standard" && (
+      </section>
+      {draft.familySituation === "standard" ? (
+        <>
+          <Separator />
+          <section className="form-section">
+            <SectionHeading kind="information" title="Parents' names">
+              Each name follows the same two-field rule as your own: given
+              name(s) first, including any middle name, then the surname.
+            </SectionHeading>
+            <div className="form-grid">
+              <Field
+                label="Father's name"
+                help="Given name(s) followed by surname, written in full."
+              >
+                <Input
+                  value={draft.fatherName}
+                  onChange={(e) => update("fatherName", e.target.value)}
+                />
+              </Field>
+              <Field
+                label="Mother's name"
+                help="Given name(s) followed by surname, written in full."
+              >
+                <Input
+                  value={draft.motherName}
+                  onChange={(e) => update("motherName", e.target.value)}
+                />
+              </Field>
+            </div>
+          </section>
+        </>
+      ) : (
         <Alert>
           <CircleHelp />
-          <AlertTitle>Assisted route needed</AlertTitle>
+          <AlertTitle>This situation needs the assisted route</AlertTitle>
           <AlertDescription>
-            A production service should reveal the official fields and support
-            for this situation. This prototype does not invent those rules.
+            A production service reveals the official fields and support for
+            this situation here. This prototype does not invent those rules, so
+            the route stops at this point. Select the first option to continue
+            the demonstrated journey.
           </AlertDescription>
         </Alert>
       )}
@@ -1343,7 +1483,7 @@ function ContactsStep({ draft, update, next, back }: StepProps) {
     <StepFrame
       eyebrow="About you · 3 of 3"
       title="Contacts & legal"
-      intro="Add the people who can be contacted, then answer the legal-history prompt separately from ordinary personal details."
+      intro="Two kinds of contact are requested for two different reasons. The legal-history declaration is kept separate from both."
       back={back}
       next={next}
       nextDisabled={
@@ -1355,10 +1495,10 @@ function ContactsStep({ draft, update, next, back }: StepProps) {
       }
     >
       <section className="form-section">
-        <div className="section-heading">
-          <h2>Emergency contact</h2>
-          <p>Someone the service can contact if needed.</p>
-        </div>
+        <SectionHeading kind="information" title="Emergency contact">
+          One person the service can reach about your application if it cannot
+          reach you. This is not a reference and is not contacted for checks.
+        </SectionHeading>
         <div className="form-grid">
           <Field label="Full name">
             <Input
@@ -1377,13 +1517,12 @@ function ContactsStep({ draft, update, next, back }: StepProps) {
       </section>
       <Separator />
       <section className="form-section">
-        <div className="section-heading">
-          <h2>Local references</h2>
-          <p>
-            Two references are retained because they appear in the official
-            fresh-passport form.
-          </p>
-        </div>
+        <SectionHeading kind="information" title="Two local references">
+          A different purpose from the emergency contact: these are two people
+          near your present address who appear as required fields on the
+          official fresh-passport form. They are kept for that reason, not
+          because the redesign wants them.
+        </SectionHeading>
         <div className="form-grid">
           <Field label="Reference 1">
             <Input
@@ -1400,20 +1539,31 @@ function ContactsStep({ draft, update, next, back }: StepProps) {
         </div>
       </section>
       <Separator />
-      <Field label="Do any of the legal-history conditions in the official form apply?">
-        <RadioCards
-          name="Legal history"
-          value={draft.legalCheck}
-          onChange={(v) =>
-            update("legalCheck", v as ApplicationDraft["legalCheck"])
-          }
-          options={[
-            { value: "no", title: "No" },
-            { value: "yes", title: "Yes" },
-            { value: "help", title: "I need help" },
-          ]}
-        />
-      </Field>
+      <section className="form-section block block--information block--emphasis">
+        <SectionHeading kind="information" title="Legal history">
+          A different weight from everything above. The official form asks a set
+          of legal-history questions with real consequences, so this stays a
+          separate declaration rather than another field in the contact list.
+        </SectionHeading>
+        <div className="inline-question">
+          <Label>
+            Do any of the legal-history conditions in the official form apply to
+            you?
+          </Label>
+          <RadioCards
+            name="Legal history"
+            value={draft.legalCheck}
+            onChange={(v) =>
+              update("legalCheck", v as ApplicationDraft["legalCheck"])
+            }
+            options={[
+              { value: "no", title: "No" },
+              { value: "yes", title: "Yes" },
+              { value: "help", title: "I need help" },
+            ]}
+          />
+        </div>
+      </section>
       {draft.legalCheck !== "no" && (
         <Alert>
           <CircleHelp />
@@ -1434,46 +1584,50 @@ function AddressStep({ draft, update, next, back }: StepProps) {
     <StepFrame
       eyebrow="Address & evidence · 1 of 3"
       title="Address & office"
-      intro="Enter the present address first, then compare it with an accepted proof before submission."
+      intro="Three separate things in order: the address you report, the document that supports it, and the office that follows from it."
       back={back}
       next={next}
       nextDisabled={
         !draft.address || draft.pin.length !== 6 || evidence.state !== "ready"
       }
     >
-      <div className="form-grid">
-        <Field label="House number and street">
-          <Input
-            value={draft.address}
-            onChange={(e) => update("address", e.target.value)}
-          />
-        </Field>
-        <Field label="Town or city">
-          <Input
-            value={draft.city}
-            onChange={(e) => update("city", e.target.value)}
-          />
-        </Field>
-        <Field
-          label="PIN code"
-          help="Used in this mock journey to show the relevant RPO and nearby centres."
-        >
-          <Input
-            inputMode="numeric"
-            value={draft.pin}
-            onChange={(e) => update("pin", e.target.value)}
-          />
-        </Field>
-      </div>
+      <section className="form-section">
+        <SectionHeading kind="information" title="Present address">
+          Where you currently live. This is the address the application is
+          processed against — not a postal address for correspondence.
+        </SectionHeading>
+        <div className="form-grid">
+          <Field label="House number and street">
+            <Input
+              value={draft.address}
+              onChange={(e) => update("address", e.target.value)}
+            />
+          </Field>
+          <Field label="Town or city">
+            <Input
+              value={draft.city}
+              onChange={(e) => update("city", e.target.value)}
+            />
+          </Field>
+          <Field
+            label="PIN code"
+            help="Used in this mock journey to show the relevant RPO and nearby centres."
+          >
+            <Input
+              inputMode="numeric"
+              value={draft.pin}
+              onChange={(e) => update("pin", e.target.value)}
+            />
+          </Field>
+        </div>
+      </section>
       <Separator />
       <section className="form-section">
-        <div className="section-heading">
-          <h2>Address confidence check</h2>
-          <p>
-            Does the proof you plan to use support the present address entered
-            above?
-          </p>
-        </div>
+        <SectionHeading kind="evidence" title="Proof for that address">
+          A separate thing from the address itself: which document you will
+          actually show. Does the proof you plan to use support the address
+          entered above?
+        </SectionHeading>
         <RadioCards
           name="Address proof"
           value={draft.addressProof}
@@ -1499,10 +1653,12 @@ function AddressStep({ draft, update, next, back }: StepProps) {
         </Alert>
       </section>
       {draft.pin.length === 6 && (
-        <section className="office-context">
+        <section className="block block--derived block--row">
           <Landmark />
           <div>
-            <span>Derived office context</span>
+            <span className="kind-tag kind-derived">
+              {blockKindLabel.derived}
+            </span>
             <strong>Regional Passport Office: Bengaluru</strong>
             <p>
               PSK and POPSK are appointment centres under an RPO. Eligible
@@ -1535,42 +1691,37 @@ function OptionsStep({ draft, update, next, back }: StepProps) {
     <StepFrame
       eyebrow="Address & evidence · 2 of 3"
       title="Passport options"
-      intro="Choose the booklet you need and answer plain-language questions used to suggest the passport category."
+      intro="One thing on this page is yours to choose. The other is worked out from two facts about you — you are not asked to classify yourself."
       back={back}
       next={next}
       nextDisabled={guidance.state !== "ready"}
     >
       <section className="form-section">
-        <div className="section-heading">
-          <h2>Passport booklet</h2>
-          <p>Fresh ordinary passport · Normal application</p>
-        </div>
+        <SectionHeading kind="choice" title="Booklet size">
+          {bookletDifference}
+        </SectionHeading>
         <RadioCards
           name="Booklet"
           value={draft.booklet}
           onChange={(v) => update("booklet", v as ApplicationDraft["booklet"])}
-          options={[
-            {
-              value: "36",
-              title: "36 pages",
-              detail: `Mock indicative fee ${bookletFee("36")}`,
-            },
-            {
-              value: "60",
-              title: "60 pages",
-              detail: `Mock indicative fee ${bookletFee("60")}`,
-            },
-          ]}
+          options={bookletChoices.map((choice) => ({
+            value: choice.value,
+            title: choice.title,
+            detail: `${choice.detail} Mock indicative fee ${bookletFee(choice.value)}.`,
+          }))}
         />
       </section>
       <Separator />
       <section className="form-section">
-        <div className="section-heading">
-          <h2>Category guidance</h2>
-          <p>
-            You do not need to know what ECR or Non-ECR means before answering.
-          </p>
-        </div>
+        <SectionHeading
+          kind="information"
+          title="Two facts used to work out your category"
+        >
+          These two are not choices about your passport. They are facts about
+          you, and the official rules use them to decide whether emigration
+          check requirements apply. You do not need to know what ECR or Non-ECR
+          means to answer them.
+        </SectionHeading>
         <Field label="What is your highest completed education?">
           <Select
             value={draft.highestEducation}
@@ -1609,6 +1760,13 @@ function OptionsStep({ draft, update, next, back }: StepProps) {
             ]}
           />
         </Field>
+      </section>
+      <Separator />
+      <section className="form-section">
+        <SectionHeading kind="derived" title="What those two answers point to">
+          A result, not an option. The documents that have to support it are
+          listed on the next page.
+        </SectionHeading>
         <Alert className={`evidence-${guidance.state}`}>
           <StateIcon state={guidance.state} />
           <AlertTitle>{guidance.label}</AlertTitle>
@@ -1626,7 +1784,7 @@ function DocumentsStep({ draft, update, next, back }: StepProps) {
     <StepFrame
       eyebrow="Address & evidence · 3 of 3"
       title="Documents"
-      intro="A personalised checklist shows why each document is needed, its digital-sharing status, and what still needs attention."
+      intro="Every row here is evidence for something you already entered. Nothing on this page is a new decision about your passport."
       back={back}
       next={next}
       nextDisabled={blocked}
@@ -1713,6 +1871,8 @@ function DocumentsStep({ draft, update, next, back }: StepProps) {
 
 function ReviewStep({ draft, update, next, back, jump }: StepProps) {
   const items = readinessItems(draft);
+  const name = passportNamePreview(draft);
+  const nameNotes = nameFormatNotes(draft);
   const blocked =
     items.some((item) => item.blocking) || draft.legalCheck !== "no";
   const submit = () => {
@@ -1726,60 +1886,111 @@ function ReviewStep({ draft, update, next, back, jump }: StepProps) {
     <StepFrame
       eyebrow="Review & submit"
       title="Review your application"
-      intro="Check the consequential details and resolve preparation issues before the declaration appears."
+      intro="What you chose and what was worked out for you are listed separately, so a mistake in either one is visible before the declaration appears."
       back={back}
       next={submit}
       nextLabel="Submit mock application"
       nextDisabled={blocked || !draft.declaration}
+      submit
     >
-      <div className="readiness-grid">
-        {items.map((item) => (
-          <article key={item.title} className={`readiness-item ${item.state}`}>
-            <StateIcon state={item.state} />
-            <div>
-              <h2>{item.title}</h2>
-              <p>{item.detail}</p>
-              <Button variant="link" onClick={() => jump(item.step)}>
-                {item.action}
-                <ChevronRight />
-              </Button>
-            </div>
-          </article>
-        ))}
-      </div>
-      <Separator />
-      <section className="answers-review">
-        <div>
-          <span>Applicant</span>
-          <strong>
-            {draft.givenName} {draft.surname}
-          </strong>
-          <p>
-            {draft.dateOfBirth} · {draft.placeOfBirth}
-          </p>
+      <section className="form-section">
+        <SectionHeading kind="derived" title="Readiness checks">
+          Worked out from what you have entered so far. Anything still open is
+          shown with the action that closes it.
+        </SectionHeading>
+        <div className="readiness-grid">
+          {items.map((item) => (
+            <article
+              key={item.title}
+              className={`readiness-item ${item.state}`}
+            >
+              <StateIcon state={item.state} />
+              <div>
+                <h2>{item.title}</h2>
+                <p>{item.detail}</p>
+                <Button variant="link" onClick={() => jump(item.step)}>
+                  {item.action}
+                  <ChevronRight />
+                </Button>
+              </div>
+            </article>
+          ))}
         </div>
-        <Button variant="outline" size="sm" onClick={() => jump(0)}>
-          Edit
-        </Button>
-        <div>
-          <span>Present address</span>
-          <strong>{draft.address}</strong>
-          <p>
-            {draft.city} · {draft.pin}
-          </p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => jump(3)}>
-          Edit
-        </Button>
-        <div>
-          <span>Passport request</span>
-          <strong>Fresh ordinary · Normal · {draft.booklet} pages</strong>
-          <p>{categoryGuidance(draft).label}</p>
-        </div>
-        <Button variant="outline" size="sm" onClick={() => jump(4)}>
-          Edit
-        </Button>
       </section>
+      <Separator />
+      <section className="form-section">
+        <SectionHeading kind="information" title="Your answers">
+          Complete and editable. Use Edit to change any answer before the
+          declaration.
+        </SectionHeading>
+        <div className="answers-review">
+          <div>
+            <span>Name as the passport would print it</span>
+            <strong>
+              {name.hasSurname ? name.surname : "(no surname)"} /{" "}
+              {name.given || "(not entered)"}
+            </strong>
+            <p>Surname first, then given name(s) including any middle name.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => jump(0)}>
+            Edit
+          </Button>
+          <div>
+            <span>Birth details</span>
+            <strong>{formatBirthDate(draft.dateOfBirth)}</strong>
+            <p>{draft.placeOfBirth}</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => jump(0)}>
+            Edit
+          </Button>
+          <div>
+            <span>Present address</span>
+            <strong>{draft.address}</strong>
+            <p>
+              {draft.city} · {draft.pin}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => jump(3)}>
+            Edit
+          </Button>
+          <div>
+            <span>What you chose</span>
+            <strong>
+              Fresh ordinary · Normal · {draft.booklet}-page booklet
+            </strong>
+            <p>Mock indicative fee {bookletFee(draft.booklet)}.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => jump(4)}>
+            Edit
+          </Button>
+          <div>
+            <span>What was worked out for you</span>
+            <strong>{categoryGuidance(draft).label}</strong>
+            <p>
+              Not a choice you made. The official process makes the final
+              determination.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => jump(4)}>
+            Edit
+          </Button>
+        </div>
+      </section>
+      {nameNotes.length > 0 && (
+        <Alert className="evidence-attention">
+          <AlertCircle />
+          <AlertTitle>
+            Check how the name is written before submitting
+          </AlertTitle>
+          <AlertDescription>
+            <ul>
+              {nameNotes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
       {!blocked && (
         <Label className="declaration-check">
           <Checkbox
@@ -1806,6 +2017,7 @@ function ReviewStep({ draft, update, next, back, jump }: StepProps) {
 
 function AppointmentStep({ draft, update, next, back }: StepProps) {
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const paid = draft.payment === "paid";
   const pay = () => {
     update("payment", "processing");
     window.setTimeout(() => update("payment", "failed"), 700);
@@ -1824,9 +2036,9 @@ function AppointmentStep({ draft, update, next, back }: StepProps) {
       title="Choose an appointment"
       intro="See office hierarchy and indicative availability first. An exact date and time is confirmed only after mock payment."
       back={back}
-      next={next}
-      nextLabel="View appointment summary"
-      nextDisabled={draft.payment !== "paid"}
+      next={paid ? next : () => setPaymentOpen(true)}
+      nextLabel={paid ? "View appointment summary" : "Continue to mock payment"}
+      nextDisabled={draft.centre === null}
     >
       <Alert>
         <MapPin />
@@ -1865,20 +2077,22 @@ function AppointmentStep({ draft, update, next, back }: StepProps) {
         ))}
       </section>
       {draft.centre !== null && (
-        <section className="indicative">
+        <section className="block block--derived block--row">
           <CalendarDays />
           <div>
+            <span className="kind-tag kind-derived">
+              {blockKindLabel.derived}
+            </span>
             <strong>
               Indicative availability at {centres[draft.centre].name}
             </strong>
             <p>
-              Earliest shown: {centres[draft.centre].earliest}. The exact slot
-              is selected in the mock payment step.
+              Earliest shown: {centres[draft.centre].earliest}.{" "}
+              {paid
+                ? "Your confirmed date and time are on the appointment summary."
+                : "The exact slot is selected in the mock payment step, using the button below."}
             </p>
           </div>
-          <Button onClick={() => setPaymentOpen(true)}>
-            Continue to mock payment
-          </Button>
         </section>
       )}
       <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
@@ -1986,6 +2200,9 @@ function ReadyStep({
       title="Prepared for your appointment"
       intro="This summary brings the confirmed mock visit, document actions, and next steps into one place."
       back={back}
+      next={() => window.print()}
+      nextLabel="Print summary"
+      submit
     >
       <div className="ready-banner">
         <BadgeCheck />
@@ -2038,17 +2255,14 @@ function ReadyStep({
       </section>
       <Alert>
         <ShieldCheck />
-        <AlertTitle>Preparation summary—not approval</AlertTitle>
+        <AlertTitle>Preparation summary — not approval</AlertTitle>
         <AlertDescription>
           The prototype can say you are prepared based on the information
           provided. It cannot say verified, approved, or guaranteed.
         </AlertDescription>
       </Alert>
       <div className="ready-actions">
-        <Button variant="outline" onClick={() => window.print()}>
-          Print summary
-        </Button>
-        <Button variant="outline" onClick={restart}>
+        <Button variant="ghost" onClick={restart}>
           <RotateCcw />
           Restart prototype
         </Button>
