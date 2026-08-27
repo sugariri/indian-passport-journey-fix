@@ -23,6 +23,12 @@ export type StepId =
   | "ready"
 
 export type EvidenceState = "ready" | "attention" | "review"
+/**
+ * Where a document comes from is a separate axis from whether it is settled.
+ * Every evidence row carries one of these; the state above is derived from it
+ * together with the answers the document supports.
+ */
+export type DocumentSourceValue = "shared" | "upload" | "carry" | "missing"
 export type SaveState = "saving" | "saved" | "error"
 export type View = "start" | "signin" | "application" | "dashboard"
 export type PaymentState = "idle" | "processing" | "failed" | "paid"
@@ -59,8 +65,12 @@ export interface ApplicationDraft {
   highestEducation: "graduate" | "school" | "another" | "unsure"
   employmentAbroad: "no" | "yes" | "unsure"
   booklet: "36" | "60"
-  birthDocument: "shared" | "carry"
-  educationDocument: "shared" | "carry" | "missing"
+  birthDocument: DocumentSourceValue
+  addressDocument: DocumentSourceValue
+  educationDocument: DocumentSourceValue
+  birthDocumentName: string
+  addressDocumentName: string
+  educationDocumentName: string
   declaration: boolean
   centre: number | null
   day: number | null
@@ -76,12 +86,13 @@ export interface GuidanceResult {
 }
 
 export interface DocumentRequirement {
-  id: string
+  id: "birth" | "address" | "category"
   title: string
   purpose: string
   state: EvidenceState
-  digitalStatus: "Shared through DigiLocker" | "Not digitally shared" | "Needs a decision"
+  digitalStatus: "Shared through DigiLocker" | "Uploaded to this application" | "Not digitally shared" | "Needs a decision"
   appointmentAction: string
+  source: DocumentSourceValue
 }
 
 export interface AddressEvidence {
@@ -153,7 +164,11 @@ export const defaultDraft: ApplicationDraft = {
   employmentAbroad: "no",
   booklet: "36",
   birthDocument: "shared",
+  addressDocument: "carry",
   educationDocument: "shared",
+  birthDocumentName: "",
+  addressDocumentName: "",
+  educationDocumentName: "",
   declaration: false,
   centre: null,
   day: null,
@@ -216,9 +231,9 @@ export function categoryGuidance(draft: ApplicationDraft): GuidanceResult {
     }
   }
   return {
-    state: "attention",
-    label: "Review the category and supporting evidence",
-    detail: "The answers in this mock journey do not produce a confident suggestion. Check the official criteria before declaring.",
+    state: "ready",
+    label: "Your answers are recorded for the category check",
+    detail: "The official rules work out the emigration-check category from facts like these. This prototype does not make that determination, so it records the answers and lists the supporting evidence on the Documents stage.",
   }
 }
 
@@ -247,40 +262,62 @@ export function addressEvidence(draft: ApplicationDraft): AddressEvidence {
 export function documentRequirements(draft: ApplicationDraft): DocumentRequirement[] {
   const address = addressEvidence(draft)
   const category = categoryGuidance(draft)
+  const status = (source: DocumentSourceValue): DocumentRequirement["digitalStatus"] =>
+    source === "shared"
+      ? "Shared through DigiLocker"
+      : source === "upload"
+        ? "Uploaded to this application"
+        : source === "carry"
+          ? "Not digitally shared"
+          : "Needs a decision"
+  const action = (source: DocumentSourceValue): string =>
+    source === "shared"
+      ? "Digitally shared in this mock journey"
+      : source === "upload"
+        ? "Attached to this application; keep the original available if asked"
+        : source === "carry"
+          ? "Keep the selected document ready for verification"
+          : "Decide how this document is provided before submission"
   return [
     {
       id: "birth",
       title: "Proof of date of birth",
       purpose: "Supports the date of birth you entered in Personal & history.",
-      state: "ready",
-      digitalStatus: draft.birthDocument === "shared" ? "Shared through DigiLocker" : "Not digitally shared",
-      appointmentAction: draft.birthDocument === "shared" ? "Digitally shared in this mock journey" : "Keep the selected document ready for verification",
+      state: draft.birthDocument === "missing" ? "attention" : "ready",
+      digitalStatus: status(draft.birthDocument),
+      appointmentAction: action(draft.birthDocument),
+      source: draft.birthDocument,
     },
     {
       id: "address",
       title: "Proof of present address",
       purpose: "Supports the present residential address used for this application.",
-      state: address.state,
-      digitalStatus: address.state === "ready" ? "Not digitally shared" : "Needs a decision",
-      appointmentAction: address.state === "ready" ? "Keep the chosen proof ready for verification if required" : "Choose or check a proof that supports the address entered",
+      state:
+        address.state !== "ready"
+          ? address.state
+          : draft.addressDocument === "missing"
+            ? "attention"
+            : "ready",
+      digitalStatus: status(draft.addressDocument),
+      appointmentAction:
+        address.state === "ready"
+          ? action(draft.addressDocument)
+          : "Choose or check a proof that supports the address entered",
+      source: draft.addressDocument,
     },
     {
       id: "category",
       title: "Evidence for passport category",
       purpose: `Supports the category worked out from your education and employment answers. Current guidance: ${category.label}.`,
-      state: draft.educationDocument === "missing" ? "attention" : category.state,
-      digitalStatus:
-        draft.educationDocument === "shared"
-          ? "Shared through DigiLocker"
-          : draft.educationDocument === "carry"
-            ? "Not digitally shared"
-            : "Needs a decision",
-      appointmentAction:
-        draft.educationDocument === "shared"
-          ? "Digitally shared in this mock journey"
-          : draft.educationDocument === "carry"
-            ? "Keep the selected evidence ready for verification"
-            : "Select supporting evidence before submission",
+      state:
+        draft.educationDocument === "missing"
+          ? "attention"
+          : category.state === "ready"
+            ? "ready"
+            : category.state,
+      digitalStatus: status(draft.educationDocument),
+      appointmentAction: action(draft.educationDocument),
+      source: draft.educationDocument,
     },
   ]
 }

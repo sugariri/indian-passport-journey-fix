@@ -1,8 +1,263 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/ibm-plex-sans";
+/* Self-hosted, so the service makes no third-party font request. Noto Sans was
+   chosen on script coverage rather than taste: it renders Devanagari, Bengali,
+   Tamil, Telugu, Kannada, Malayalam, Gujarati, Gurmukhi and Odia, which the
+   faces usually reached for here - Inter, Public Sans, IBM Plex - do not. */
+@import "@fontsource-variable/noto-sans";
+
 @custom-variant dark (&:is(.dark *));
-:root{--background:oklch(1 0 0);--foreground:oklch(.17 0 0);--card:oklch(1 0 0);--card-foreground:oklch(.17 0 0);--popover:oklch(1 0 0);--popover-foreground:oklch(.17 0 0);--primary:oklch(.54 .21 262);--primary-foreground:oklch(.99 0 0);--secondary:oklch(.96 0 0);--secondary-foreground:oklch(.17 0 0);--muted:oklch(.96 0 0);--muted-foreground:oklch(.43 0 0);--accent:oklch(.93 .03 258);--accent-foreground:oklch(.17 0 0);--destructive:oklch(.51 .2 25);--border:oklch(.89 0 0);--input:oklch(.96 0 0);--ring:oklch(.54 .21 262);--radius:0}
-@theme inline{--font-sans:'IBM Plex Sans Variable',Arial,sans-serif;--font-heading:'IBM Plex Sans Variable',Arial,sans-serif;--color-background:var(--background);--color-foreground:var(--foreground);--color-card:var(--card);--color-card-foreground:var(--card-foreground);--color-popover:var(--popover);--color-popover-foreground:var(--popover-foreground);--color-primary:var(--primary);--color-primary-foreground:var(--primary-foreground);--color-secondary:var(--secondary);--color-secondary-foreground:var(--secondary-foreground);--color-muted:var(--muted);--color-muted-foreground:var(--muted-foreground);--color-accent:var(--accent);--color-accent-foreground:var(--accent-foreground);--color-destructive:var(--destructive);--color-border:var(--border);--color-input:var(--input);--color-ring:var(--ring);--radius-sm:0;--radius-md:0;--radius-lg:0}
-@layer base{*{@apply border-border}body{@apply bg-background text-foreground}button:not(:disabled),[role="button"]:not(:disabled){cursor:pointer}}
+
+/* ---------------------------------------------------------------------------
+ * Two layers, and only two. Nothing below this block may name a raw colour.
+ *
+ *   palette  - the raw values. Swapping the visual identity means editing
+ *              these fourteen lines and nothing else.
+ *   roles    - what a colour is *for*. Everything in the stylesheet reads a
+ *              role, never a palette entry, so a role can be re-pointed
+ *              without hunting through 1,400 lines.
+ *
+ * The rule that keeps this honest: if two things mean the same, they share a
+ * role. If they mean different things, they get different roles even when the
+ * values happen to coincide today - otherwise a later change to one silently
+ * drags the other with it.
+ * ------------------------------------------------------------------------- */
+:root {
+  /* palette ----------------------------------------------------------------
+   * Sourced from UX4G, the Government of India's own design system (National
+   * e-Governance Division, MeitY), which publishes a full eleven-step token
+   * ramp. Every entry names the UX4G token it came from, so the identity is
+   * cited rather than invented and a reviewer can check it against the source
+   * instead of taking my word for it.
+   *
+   * Where UX4G's natural step for a role misses the WCAG floor that role has
+   * to hold, the next darker step on the same UX4G ramp is taken instead, and
+   * the swap is marked at the line. Nothing off-ramp has been introduced.
+   *
+   * Two things worth knowing about the source: UX4G's `primary` ramp is a
+   * violet, which the passport does not wear, so the brand roles draw from its
+   * blue and secondary (gold) ramps - the navy-and-gold the booklet itself
+   * uses. Its neutrals are true greys rather than the blue-tinted greys this
+   * file previously carried.
+   * --------------------------------------------------------------------- */
+  --p-navy: #001944; /* blue-950 */
+  --p-blue: #04409f; /* blue-800 */
+  --p-blue-light: #a1c9ff; /* blue-300 */
+  --p-blue-mist: #d0e4ff; /* blue-200 */
+  --p-blue-pale: #e7f2ff; /* blue-100 */
+  --p-blue-wash: #f5faff; /* blue-50 */
+  /* secondary-600 (#a46800) is the nearer match to the weight this gold had,
+     but reaches only 4.15:1 on the pale gold ground it sits on, and this gold
+     is used as text as well as as an accent bar. */
+  --p-gold: #764a00; /* secondary-700 */
+  --p-gold-pale: #fff5ea; /* secondary-50 */
+  --p-gold-bright: #e89c30; /* secondary-400 */
+  --p-green: #006c35; /* green-700 */
+  --p-orange: #ad4e00; /* orange-800 */
+  --p-grey-ink: #171717; /* neutral-900 */
+  --p-grey-mid: #525252; /* neutral-600 */
+  --p-grey-line: #d9d9d9; /* neutral-300 */
+  /* neutral-400 (#a1a1a1) is where a strong border naturally sits on this
+     ramp, but measures 2.32:1 on white - under the 3:1 WCAG 1.4.11 asks of a
+     boundary a person has to see in order to operate a control. */
+  --p-grey-line-firm: #737373; /* neutral-500 */
+  --p-grey-track: #737373; /* neutral-500, same floor, same reason */
+  --p-grey-ground: #f5f5f5; /* neutral-100 */
+  --p-white: #ffffff; /* neutral-0 */
+  --p-danger: #8a1a16; /* red-800 */
+
+  /* Tint families. Each is a background, a boundary and a text colour that are
+     legible together; kinds and states below draw from these rather than
+     inventing their own, so a green always means the same green. */
+  --p-tint-green-bg: #f2fcef; /* green-50 */
+  --p-tint-green-line: #80da88; /* green-300 */
+  --p-tint-green-ink: #00522c; /* green-800 */
+  --p-tint-amber-bg: #fff7e6; /* orange-50 */
+  --p-tint-amber-line: #ffc973; /* orange-300 */
+  --p-tint-amber-ink: #873800; /* orange-900 */
+  --p-tint-blue-line: #a1c9ff; /* blue-300 */
+  --p-tint-blue-ink: #04409f; /* blue-800 */
+  --p-tint-grey-bg: #fafafa; /* neutral-50 */
+  --p-tint-grey-line: #d9d9d9; /* neutral-300 */
+  --p-tint-grey-ink: #404040; /* neutral-700 */
+
+  /* Ink that sits on the pale gold declaration ground, which is too light for
+     white text and too warm for the standard greys. */
+  --p-gold-ink: #4b2d00; /* secondary-800 */
+  /* secondary-300 (#ffbe6f) is the natural pale-box edge, but the declaration
+     box is the one boundary in the service a person must not miss, and it
+     reached 1.52:1 against its own ground. This is the lightest step on the
+     ramp that holds 3:1 on both that ground and the white around it. */
+  --p-gold-line: #c47d00; /* secondary-500 */
+
+  /* Boundary steps for the evidence state boxes, split from the tint lines
+     above because they carry a different claim: a kind pill's edge is
+     decoration beside a text label, while a state box's edge is part of how
+     the state reads, so WCAG 1.4.11 asks 3:1 of it against both its own tint
+     and the white around it. Each is the lightest step on its own UX4G ramp
+     that holds against both. */
+  --p-state-green-line: #1aa64a; /* green-500 */
+  --p-state-amber-line: #d46b08; /* orange-700 */
+  --p-state-blue-line: #3271ea; /* blue-600 */
+
+  /* Held as components so a role can set its own opacity. */
+  --p-scrim-rgb: 0 25 68; /* --p-navy */
+  --p-shadow-rgb: 23 23 23; /* --p-grey-ink */
+  --p-on-dark-rgb: 255 255 255; /* --p-white */
+
+  /* roles: type ----------------------------------------------------------- */
+  --type-sans: "Noto Sans Variable", "Noto Sans", system-ui, -apple-system,
+    "Segoe UI", Arial, sans-serif;
+
+  /* roles: brand ---------------------------------------------------------- */
+  --civic-navy: var(--p-navy);
+  --civic-blue: var(--p-blue);
+  --civic-gold: var(--p-gold);
+
+  /* roles: text ----------------------------------------------------------- */
+  --ink: var(--p-grey-ink);
+  --muted-ink: var(--p-grey-mid);
+  --on-dark: var(--p-white);
+  --on-dark-muted: var(--p-blue-mist);
+  --on-dark-accent: var(--p-blue-light);
+  --on-dark-gold: var(--p-gold-bright);
+  --on-soft-gold: var(--p-gold-ink);
+
+  /* roles: surfaces ------------------------------------------------------- */
+  --surface: var(--p-white);
+  --surface-hover: var(--p-blue-wash);
+  --ground: var(--p-grey-ground);
+  --soft-blue: var(--p-blue-pale);
+  --soft-gold: var(--p-gold-pale);
+
+  /* roles: boundaries ----------------------------------------------------- */
+  --line: var(--p-grey-line);
+  /* A boundary a person has to see to operate the control - a checkbox edge, a
+     select edge. WCAG 1.4.11 wants 3:1 against the surface behind it, which
+     --line does not reach and is not required to. */
+  --line-firm: var(--p-grey-line-firm);
+  /* The unfilled half of a progress or step track: present, not competing. */
+  --track: var(--p-grey-track);
+  --soft-gold-line: var(--p-gold-line);
+  --soft-blue-line: var(--p-tint-blue-line);
+
+  /* roles: status --------------------------------------------------------- */
+  --success: var(--p-green);
+  /* Same meaning as --success, separate role because green-700 does not hold
+     its contrast floor on navy. Confirmation on a dark panel takes green-300. */
+  --success-on-dark: var(--p-tint-green-line);
+  --warning: var(--p-orange);
+  --danger: var(--p-danger);
+
+  /* roles: block kinds. The left bar says what sort of block this is. */
+  --kind-choice-ink: var(--p-tint-blue-ink);
+  --kind-choice-line: var(--p-tint-blue-line);
+  --kind-choice-bg: var(--p-blue-pale);
+  --kind-information-ink: var(--p-tint-grey-ink);
+  --kind-information-line: var(--p-tint-grey-line);
+  --kind-information-bg: var(--p-tint-grey-bg);
+  --kind-information-bar: var(--p-grey-mid);
+  --kind-derived-ink: var(--p-tint-amber-ink);
+  --kind-derived-line: var(--p-tint-amber-line);
+  --kind-derived-bg: var(--p-tint-amber-bg);
+  --kind-evidence-ink: var(--p-tint-green-ink);
+  --kind-evidence-line: var(--p-tint-green-line);
+  --kind-evidence-bg: var(--p-tint-green-bg);
+
+  /* roles: evidence states. A filled tint plus an icon. Deliberately named
+     apart from the kinds above even where the value matches, because "this is
+     an evidence block" and "this evidence is ready" are different claims. */
+  --state-ready-bg: var(--p-tint-green-bg);
+  --state-ready-line: var(--p-state-green-line);
+  --state-attention-bg: var(--p-tint-amber-bg);
+  --state-attention-line: var(--p-state-amber-line);
+  --state-review-line: var(--p-state-blue-line);
+
+  /* roles: overlays on the dark rail ------------------------------------- */
+  --rail-tint: rgb(var(--p-on-dark-rgb) / 0.07);
+  --rail-focus: rgb(var(--p-on-dark-rgb) / 0.1);
+  --rail-line: rgb(var(--p-on-dark-rgb) / 0.14);
+
+  /* roles: elevation ----------------------------------------------------- */
+  --shadow-sm: 0 8px 24px rgb(var(--p-shadow-rgb) / 0.06);
+  --shadow-md: 0 12px 30px rgb(var(--p-shadow-rgb) / 0.1);
+  --shadow-lg: 0 18px 45px rgb(var(--p-scrim-rgb) / 0.24);
+
+  /* One padding and one accent width for every content block. A box that needs
+     different geometry has to justify it, rather than acquiring it by drift. */
+  --block-pad: 1.25rem;
+  --accent-bar: 4px;
+}
+/* ---------------------------------------------------------------------------
+ * shadcn bridge. These are the names Radix and the twenty components in @/ read
+ * from; every one of them now resolves to a role above, so the components and
+ * the hand-written CSS cannot drift apart. Nothing here may hold a raw value.
+ *
+ * --input is the one that matters: it draws the edge of every checkbox, text
+ * field and select trigger, and at its old value it measured 1.04:1 against the
+ * pale gold declaration ground. WCAG 1.4.11 asks 3:1 for a boundary a person
+ * has to see to operate the control, so it points at --line-firm, not --line.
+ * --border is the decorative default that `* { border-border }` applies, and
+ * stays soft on purpose.
+ * ------------------------------------------------------------------------- */
+:root {
+  --background: var(--surface);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--civic-blue);
+  --primary-foreground: var(--on-dark);
+  --secondary: var(--ground);
+  --secondary-foreground: var(--ink);
+  --muted: var(--ground);
+  --muted-foreground: var(--muted-ink);
+  --accent: var(--soft-blue);
+  --accent-foreground: var(--ink);
+  --destructive: var(--danger);
+  --border: var(--line);
+  --input: var(--line-firm);
+  --ring: var(--civic-blue);
+  --radius: 0;
+}
+
+@theme inline {
+  --font-sans: var(--type-sans);
+  --font-heading: var(--type-sans);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}

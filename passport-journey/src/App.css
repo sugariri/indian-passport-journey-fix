@@ -1,21 +1,6 @@
-:root {
-  --civic-navy: #071d49;
-  --civic-blue: #0f62fe;
-  --civic-gold: #b47700;
-  --ink: #17212e;
-  --muted-ink: #536171;
-  --surface: #ffffff;
-  --ground: #f4f6f8;
-  --soft-blue: #edf5ff;
-  --soft-gold: #fff6dc;
-  --line: #d7dde5;
-  --success: #198038;
-  --warning: #b35300;
-  /* One padding and one accent width for every content block. A box that needs
-     different geometry has to justify it, rather than acquiring it by drift. */
-  --block-pad: 1.25rem;
-  --accent-bar: 4px;
-}
+/* Component styles only. Every colour, and the two shared geometry values,
+   come from the token layer in index.css - see the comment at the top of that
+   file for the palette / role split and the rule that keeps it honest. */
 
 * {
   box-sizing: border-box;
@@ -51,7 +36,7 @@ svg {
   place-items: center;
   width: 2.5rem;
   height: 2.5rem;
-  color: white;
+  color: var(--on-dark);
   background: var(--civic-blue);
   font-size: 0.75rem;
   font-weight: 700;
@@ -72,6 +57,17 @@ svg {
 .brand.small {
   min-width: 0;
 }
+/* The mark is already navy-on-blue, so on a navy panel it needs its own edge
+   to stay a mark rather than dissolve into the background. */
+.brand.on-dark .brand-mark {
+  box-shadow: 0 0 0 1px var(--rail-line);
+}
+.brand.on-dark strong {
+  color: var(--on-dark);
+}
+.brand.on-dark small {
+  color: var(--on-dark-muted);
+}
 .brand.small .brand-mark {
   width: 2rem;
   height: 2rem;
@@ -84,14 +80,14 @@ svg {
   align-items: center;
   gap: 0.65rem;
   padding: 0.55rem 1rem;
-  background: #111827;
-  color: white;
+  background: var(--civic-navy);
+  color: var(--on-dark);
   font-size: 0.75rem;
 }
 .prototype-note.compact {
-  color: #24364b;
+  color: var(--ink);
   background: var(--soft-blue);
-  border-bottom: 1px solid #bdd7ff;
+  border-bottom: 1px solid var(--soft-blue-line);
 }
 .prototype-note.compact strong {
   color: var(--civic-navy);
@@ -99,10 +95,9 @@ svg {
 
 .public-page {
   min-height: 100vh;
-  background: white;
+  background: var(--surface);
 }
 .public-header,
-.gateway-header,
 .dashboard-header {
   height: 5rem;
   display: flex;
@@ -110,7 +105,7 @@ svg {
   justify-content: space-between;
   gap: 2rem;
   padding: 0 max(2rem, calc((100vw - 1440px) / 2));
-  background: white;
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
 .public-header nav {
@@ -118,9 +113,12 @@ svg {
   display: flex;
   align-items: stretch;
 }
+/*
+  Nav items read as plain text links. Sign in is deliberately not in this list
+  any more - it is a real Button, and a border:0 here would erase its outline.
+*/
 .public-header nav a,
-.public-header nav button,
-.public-actions button {
+.public-header nav button {
   display: flex;
   align-items: center;
   padding: 0 1.2rem;
@@ -168,23 +166,23 @@ svg {
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(4, 22, 49, 0.96) 0%,
-    rgba(4, 22, 49, 0.72) 44%,
-    rgba(4, 22, 49, 0.16) 75%
+    rgb(var(--p-scrim-rgb) / 0.96) 0%,
+    rgb(var(--p-scrim-rgb) / 0.72) 44%,
+    rgb(var(--p-scrim-rgb) / 0.16) 75%
   );
 }
 .hero-copy {
   position: relative;
   z-index: 1;
   width: auto;
-  color: white;
+  color: var(--on-dark);
 }
 .hero-copy span,
 .eyebrow,
 .step-heading > span {
   display: block;
   margin-bottom: 0.75rem;
-  color: #a6c8ff;
+  color: var(--on-dark-accent);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -210,7 +208,7 @@ svg {
   width: 100%;
   margin: 0;
   border-top: 4px solid var(--civic-blue);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+  box-shadow: var(--shadow-lg);
 }
 .route-card [data-slot="card-header"] {
   padding: 1.5rem 1.5rem 1rem;
@@ -224,7 +222,6 @@ svg {
   font-size: 1.5rem;
 }
 .route-card [data-slot="card-title"] h2,
-.signin-card [data-slot="card-title"] h2,
 .draft-card [data-slot="card-title"] h2 {
   margin: 0;
   font: inherit;
@@ -250,13 +247,13 @@ svg {
   padding: 0 1.1rem;
   border: 0;
   border-left: 1px solid var(--line);
-  background: white;
+  background: var(--surface);
 }
 .segmented button:first-child {
   border-left: 0;
 }
 .segmented button.selected {
-  color: white;
+  color: var(--on-dark);
   background: var(--civic-blue);
 }
 .route-section,
@@ -278,11 +275,11 @@ svg {
   padding: 1rem;
   text-align: left;
   border: 1px solid var(--line);
-  background: white;
+  background: var(--surface);
 }
 .route:hover {
   border-color: var(--civic-blue);
-  background: #fafcff;
+  background: var(--surface-hover);
 }
 .route.selected {
   border: 2px solid var(--civic-blue);
@@ -313,7 +310,7 @@ svg {
   align-items: center;
   gap: 1.5rem;
   padding: var(--block-pad);
-  background: #f8fafc;
+  background: var(--ground);
   border: 1px solid var(--line);
 }
 .tatkaal-panel div {
@@ -368,7 +365,7 @@ svg {
   flex-direction: column;
   gap: 0.8rem;
   padding: 1.5rem;
-  background: white;
+  background: var(--surface);
 }
 .prepare-grid svg {
   color: var(--civic-gold);
@@ -381,24 +378,118 @@ svg {
   line-height: 1.5;
 }
 
-.gateway-page,
 .dashboard-page {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--ground);
 }
-.gateway-main {
-  flex: 1;
+
+/* The gateway is one interstitial step, so it gets the split sign-in shape:
+   a fixed visual column and a form column that scrolls on its own. Neither
+   half moves the other. */
+.gateway-page {
+  min-height: 100vh;
   display: grid;
-  grid-template-columns: 0.9fr 1.1fr;
-  gap: 6rem;
-  align-items: center;
-  width: min(1100px, calc(100% - 3rem));
-  margin: auto;
-  padding: 4rem 0;
+  grid-template-columns: 1.02fr 1fr;
+  background: var(--surface);
 }
-.gateway-context h1,
+.gateway-visual {
+  position: relative;
+  overflow: hidden;
+  background: var(--civic-navy);
+}
+.gateway-visual > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 60% center;
+  filter: saturate(0.75);
+}
+/* Same scrim direction as the start-page hero, turned so the copy edge stays
+   the dense one and the image survives at the split. */
+.gateway-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    rgb(var(--p-scrim-rgb) / 0.97) 0%,
+    rgb(var(--p-scrim-rgb) / 0.86) 52%,
+    rgb(var(--p-scrim-rgb) / 0.42) 100%
+  );
+}
+.gateway-visual-body {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 3rem;
+  padding: 2.5rem max(3rem, calc((100vw - 1440px) / 2 + 2rem)) 2.5rem
+    max(3rem, calc((100vw - 1440px) / 2));
+  color: var(--on-dark);
+}
+.gateway-context {
+  align-self: center;
+  max-width: 30rem;
+}
+.gateway-visual-foot {
+  margin: 0;
+  color: var(--on-dark-muted);
+  font-size: 0.8rem;
+}
+
+.gateway-form {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  background: var(--surface);
+}
+/* Left-aligned and quiet: it heads a column, not the whole viewport, so a
+   centred full-bleed stripe would read as a stray banner again. The inset is
+   a flat 2.5rem, not the page-centring formula the full-width headers use -
+   inside a half-width column that formula pushes the text toward the middle,
+   which is what made it look adrift. */
+.gateway-form > .prototype-note {
+  justify-content: flex-start;
+  padding: 0.7rem 2.5rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.gateway-form-body {
+  display: grid;
+  gap: 1.75rem;
+  align-content: center;
+  justify-self: center;
+  width: min(26rem, 100%);
+  padding: 3rem 2.5rem;
+}
+.gateway-form-heading h2 {
+  margin: 0 0 0.5rem;
+  color: var(--civic-navy);
+  font-size: 1.75rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+.gateway-form-heading p {
+  margin: 0;
+  color: var(--muted-ink);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+.gateway-form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding-top: 0.5rem;
+}
+.gateway-form-actions button:last-child {
+  flex: 1;
+  justify-content: center;
+}
+
 .dashboard-heading h1 {
   margin: 0.25rem 0 1rem;
   color: var(--civic-navy);
@@ -406,8 +497,18 @@ svg {
   font-weight: 400;
   letter-spacing: -0.04em;
 }
+/* This copy now sits on the navy panel, so it takes the on-dark roles and the
+   lighter hero weight rather than the dashboard heading's. */
+.gateway-context h1 {
+  margin: 0.25rem 0 1.25rem;
+  font-size: clamp(2.5rem, 3.6vw, 3.5rem);
+  font-weight: 300;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
 .gateway-context p {
-  color: var(--muted-ink);
+  margin: 0 0 1.75rem;
+  color: var(--on-dark-muted);
   font-size: 1.05rem;
   line-height: 1.6;
 }
@@ -423,16 +524,24 @@ svg {
   align-items: center;
 }
 .gateway-context li svg {
-  color: var(--success);
-}
-.signin-card {
-  border-top: 4px solid var(--civic-blue);
-  box-shadow: 0 12px 30px rgba(25, 36, 51, 0.1);
+  color: var(--success-on-dark);
 }
 .signin-fields {
   display: grid;
   gap: 1.2rem;
   padding-top: 1.25rem;
+}
+/* Without the card around it the default pill switch reads as two stray
+   chips, so on the gateway it becomes a full-width segmented control. */
+.gateway-form-body [data-slot="tabs-list"] {
+  width: 100%;
+  padding: 0.25rem;
+  background: var(--ground);
+  border: 1px solid var(--line);
+}
+.gateway-form-body [data-slot="tabs-trigger"] {
+  flex: 1;
+  font-size: 0.875rem;
 }
 .step-actions {
   justify-content: space-between;
@@ -458,21 +567,21 @@ svg {
   display: flex;
   flex-direction: column;
   background: var(--civic-navy);
-  color: white;
+  color: var(--on-dark);
 }
 .app-rail .brand {
   padding: 1.35rem 1.25rem;
-  background: white;
+  background: var(--surface);
 }
 .application-summary {
   display: grid;
   gap: 0.35rem;
   padding: 1.4rem 1.25rem;
-  background: rgba(255, 255, 255, 0.07);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--rail-tint);
+  border-bottom: 1px solid var(--rail-line);
 }
 .application-summary span {
-  color: #a6c8ff;
+  color: var(--on-dark-accent);
   font-size: 0.75rem;
 }
 .application-summary strong {
@@ -488,23 +597,23 @@ svg {
   gap: 0.75rem;
   min-height: 3rem;
   padding: 0 0.75rem;
-  color: white;
+  color: var(--on-dark);
   border: 0;
   text-align: left;
   background: transparent;
 }
 .app-rail button:hover,
 .app-rail button:focus-visible {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--rail-focus);
 }
 .rail-bottom {
   margin-top: auto;
   padding: 0.8rem 0.75rem 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-top: 1px solid var(--rail-line);
 }
 .rail-bottom p {
   margin: 0.25rem 0.75rem 0;
-  color: #aab9ce;
+  color: var(--on-dark-muted);
   font-size: 0.72rem;
 }
 .workspace-body {
@@ -517,7 +626,7 @@ svg {
   align-items: center;
   gap: 2rem;
   padding: 0 2.5rem;
-  background: white;
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
 }
 .workspace-header > div:not(.mobile-brand) {
@@ -566,7 +675,7 @@ svg {
 }
 .chapters span {
   padding: 0 0 0.5rem;
-  border-bottom: 2px solid #9fb6d1;
+  border-bottom: 2px solid var(--track);
   color: var(--civic-navy);
   font-size: 0.68rem;
   font-weight: 600;
@@ -583,9 +692,9 @@ svg {
   align-items: center;
   justify-content: center;
   gap: 0.3rem;
-  color: #657285;
+  color: var(--muted-ink);
   border: 0;
-  border-bottom: 3px solid #cfd6df;
+  border-bottom: 3px solid var(--track);
   background: transparent;
 }
 .step-nav button span {
@@ -593,8 +702,8 @@ svg {
   height: 1.75rem;
   display: grid;
   place-items: center;
-  border: 1px solid #aab4c0;
-  background: white;
+  border: 1px solid var(--line-firm);
+  background: var(--surface);
 }
 .step-nav button svg {
   width: 0.9rem;
@@ -613,10 +722,10 @@ svg {
 .step-nav button.current {
   color: var(--civic-navy);
   border-bottom-color: var(--civic-blue);
-  background: white;
+  background: var(--surface);
 }
 .step-nav button.current span {
-  color: white;
+  color: var(--on-dark);
   border-color: var(--civic-blue);
   background: var(--civic-blue);
 }
@@ -625,7 +734,7 @@ svg {
   border-bottom-color: var(--success);
 }
 .step-nav button.complete span {
-  color: white;
+  color: var(--on-dark);
   border-color: var(--success);
   background: var(--success);
 }
@@ -661,7 +770,7 @@ svg {
 }
 .form-card {
   border-top: 4px solid var(--civic-navy);
-  box-shadow: 0 8px 24px rgba(20, 35, 55, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 .form-card [data-slot="card-content"] {
   display: grid;
@@ -670,7 +779,7 @@ svg {
 }
 .form-card [data-slot="card-footer"] {
   padding: 1.25rem 2rem;
-  background: #f8fafc;
+  background: var(--ground);
   border-top: 1px solid var(--line);
 }
 .form-section {
@@ -700,7 +809,7 @@ svg {
   border-left: var(--accent-bar) solid var(--civic-blue);
 }
 .block--information {
-  border-left: var(--accent-bar) solid #64748b;
+  border-left: var(--accent-bar) solid var(--kind-information-bar);
 }
 .block--derived {
   border-left: var(--accent-bar) solid var(--civic-gold);
@@ -711,7 +820,7 @@ svg {
 /* Earned difference: the legal declaration carries more weight than the
    information around it, and the copy on that screen says so. */
 .block--emphasis {
-  background: #f8fafc;
+  background: var(--ground);
   border-left-color: var(--civic-navy);
 }
 /* A block laid out as icon + text + action, used where the block reports a
@@ -744,30 +853,82 @@ svg {
   text-transform: uppercase;
 }
 .kind-choice {
-  color: #0b4a8f;
-  background: var(--soft-blue);
-  border-color: #a6c8ff;
+  color: var(--kind-choice-ink);
+  background: var(--kind-choice-bg);
+  border-color: var(--kind-choice-line);
 }
 .kind-information {
-  color: #334155;
-  background: #f1f5f9;
-  border-color: #cbd5e1;
+  color: var(--kind-information-ink);
+  background: var(--kind-information-bg);
+  border-color: var(--kind-information-line);
 }
 .kind-derived {
-  color: #6b4708;
-  background: #fff4e5;
-  border-color: #f3b76d;
+  color: var(--kind-derived-ink);
+  background: var(--kind-derived-bg);
+  border-color: var(--kind-derived-line);
 }
 .kind-evidence {
-  color: #166534;
-  background: #edf9f0;
-  border-color: #8dce9e;
+  color: var(--kind-evidence-ink);
+  background: var(--kind-evidence-bg);
+  border-color: var(--kind-evidence-line);
 }
 .section-heading .kind-tag {
   margin-bottom: 0.5rem;
 }
-.name-preview > strong {
+/* The closed row is the whole control, so it has to look like one. The default
+   trigger is a 16px muted chevron plus an underline on hover, which beside a
+   heading-weight name reads as decoration on a link, not as a caret you can
+   open. Here the caret sits in a visible well and the well is what responds. */
+.name-preview-fold [data-slot="accordion-trigger"] {
+  align-items: center;
+  gap: 1rem;
+  padding: 0.15rem 0;
+}
+.name-preview-fold [data-slot="accordion-trigger"]:hover {
+  text-decoration: none;
+}
+.name-preview-fold
+  [data-slot="accordion-trigger"]
+  [data-slot="accordion-trigger-icon"] {
+  box-sizing: content-box;
+  width: 0.95rem;
+  height: 0.95rem;
+  padding: 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
   color: var(--civic-navy);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.name-preview-fold
+  [data-slot="accordion-trigger"]:hover
+  [data-slot="accordion-trigger-icon"] {
+  border-color: var(--civic-navy);
+  background: var(--ground);
+}
+.name-preview-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.7rem;
+  text-align: left;
+}
+.name-preview-head > strong {
+  color: var(--civic-navy);
+}
+/* The result stays legible on the closed row, so the fold does not hide it. */
+.name-preview-line {
+  color: var(--civic-navy);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.name-preview-fold [data-slot="accordion-content"] > div {
+  display: grid;
+  gap: 0.9rem;
+  padding-top: 0.7rem;
 }
 .name-preview dl {
   display: grid;
@@ -793,7 +954,7 @@ svg {
   font-weight: 500;
   letter-spacing: normal;
 }
-.name-preview > p {
+.name-preview-fold p {
   margin: 0;
   color: var(--muted-ink);
   font-size: 0.85rem;
@@ -823,9 +984,16 @@ svg {
 .form-field {
   display: grid;
   gap: 0.55rem;
+  /*
+    Each field is its own grid inside a stretched grid cell. Without this, a
+    field with fewer rows than its neighbour absorbs the leftover height
+    between its rows and pushes its input down - which is why Date of birth
+    used to sit 31px below Place of birth.
+  */
+  align-content: start;
 }
 .form-field > label {
-  color: #223a57;
+  color: var(--ink);
   font-weight: 600;
 }
 .form-field input,
@@ -833,21 +1001,42 @@ svg {
   width: 100%;
   min-height: 2.75rem;
   border-radius: 0;
-  background: white;
+  background: var(--surface);
 }
-.field-help {
+.field-label-row {
   display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-  margin: 0;
-  color: var(--muted-ink);
-  font-size: 0.8rem;
-  line-height: 1.35;
+  align-items: center;
+  gap: 0.35rem;
+  /*
+    The icon button is taller than a bare label, so a field with a tip would
+    otherwise push its input below a neighbour without one. Fixing the row
+    height keeps inputs on a shared baseline either way.
+  */
+  min-height: 1.35rem;
 }
-.field-help svg {
-  width: 0.9rem;
-  height: 0.9rem;
-  margin-top: 0.12rem;
+.field-help-tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem;
+  border: 0;
+  background: none;
+  color: var(--muted-ink);
+  cursor: help;
+  line-height: 0;
+}
+.field-help-tip:hover,
+.field-help-tip:focus-visible {
+  color: var(--civic-navy);
+}
+.field-help-tip svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+.field-help-content {
+  max-width: 20rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 .radio-cards {
   display: grid;
@@ -861,7 +1050,7 @@ svg {
   gap: 0.75rem;
   padding: 0.8rem;
   border: 1px solid var(--line);
-  background: white;
+  background: var(--surface);
   cursor: pointer;
 }
 /* The selected state thickens the edge with an inset ring rather than a wider
@@ -886,6 +1075,20 @@ svg {
 .inline-question .radio-cards {
   grid-template-columns: repeat(3, minmax(6rem, 9rem));
 }
+/*
+  Three of these stack on Personal & history, and the options only ever used
+  the left half of the row. Answer and question share one line instead, which
+  is where the height saving comes from - the options stay visible rather than
+  going behind a select.
+*/
+.inline-question--compact {
+  grid-template-columns: minmax(10rem, 1fr) auto;
+  align-items: center;
+  gap: 1.5rem;
+}
+.inline-question--compact > label {
+  margin: 0;
+}
 .state-ready {
   color: var(--success);
 }
@@ -896,16 +1099,16 @@ svg {
   color: var(--civic-blue);
 }
 .evidence-ready {
-  background: #edf9f0;
-  border-color: #8dce9e;
+  background: var(--state-ready-bg);
+  border-color: var(--state-ready-line);
 }
 .evidence-attention {
-  background: #fff4e5;
-  border-color: #f3b76d;
+  background: var(--state-attention-bg);
+  border-color: var(--state-attention-line);
 }
 .evidence-review {
   background: var(--soft-blue);
-  border-color: #a6c8ff;
+  border-color: var(--state-review-line);
 }
 
 /* Every row on the Documents screen is evidence, so the page states that once
@@ -945,6 +1148,96 @@ svg {
 .document-row [data-slot="select-trigger"] {
   width: min(22rem, 100%);
 }
+/* The library is reference, so it carries no controls and no state to set -
+   only what each document stands behind and where it is decided. It borrows
+   the Documents rows' geometry so the same evidence reads the same in both
+   places. */
+.doc-library {
+  max-width: min(46rem, calc(100vw - 3rem));
+  max-height: min(46rem, calc(100vh - 4rem));
+  overflow-y: auto;
+}
+.doc-library-section h3 {
+  margin: 0 0 0.25rem;
+  color: var(--civic-navy);
+  font-size: 1rem;
+}
+.doc-library-lead {
+  margin: 0 0 0.85rem;
+  color: var(--muted-ink);
+  font-size: 0.85rem;
+}
+.doc-library-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.doc-library-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.doc-library-item > svg {
+  margin-top: 0.2rem;
+}
+.doc-library-item > div {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+.doc-library-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+}
+.doc-library-head strong {
+  color: var(--civic-navy);
+  font-size: 1rem;
+}
+.doc-library-item p {
+  margin: 0;
+  color: var(--muted-ink);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+/* Label-above-value, so a row stays readable when the value wraps. */
+.doc-library-item dl,
+.doc-library-routes {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.15rem 0 0;
+  width: 100%;
+}
+.doc-library-item dl {
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+.doc-library-item dt,
+.doc-library-routes dt {
+  color: var(--muted-ink);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.doc-library-item dd,
+.doc-library-routes dd {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.doc-library-routes dd {
+  color: var(--muted-ink);
+}
+.doc-library-routes dt {
+  color: var(--civic-navy);
+  font-size: 0.8rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
 .readiness-grid {
   display: grid;
   gap: 0.7rem;
@@ -1003,14 +1296,14 @@ svg {
   gap: 0.8rem;
   padding: 1rem;
   background: var(--soft-gold);
-  border: 1px solid #e7c879;
+  border: 1px solid var(--soft-gold-line);
 }
 .declaration-check span {
   display: grid;
   gap: 0.35rem;
 }
 .declaration-check small {
-  color: #5c5137;
+  color: var(--on-soft-gold);
   line-height: 1.45;
 }
 
@@ -1027,7 +1320,7 @@ svg {
   color: var(--ink);
   text-align: left;
   border: 1px solid var(--line);
-  background: white;
+  background: var(--surface);
 }
 .centre.selected {
   border: 2px solid var(--civic-blue);
@@ -1038,7 +1331,7 @@ svg {
   place-items: center;
   min-height: 2.2rem;
   color: var(--civic-navy);
-  background: #dbeafe;
+  background: var(--soft-blue);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -1073,13 +1366,13 @@ svg {
   grid-template-columns: auto 1fr;
   gap: 1rem;
   padding: 1.5rem;
-  color: white;
+  color: var(--on-dark);
   background: var(--civic-navy);
 }
 .ready-banner > svg {
   width: 2rem;
   height: 2rem;
-  color: #f1c21b;
+  color: var(--on-dark-gold);
 }
 .ready-banner div {
   display: grid;
@@ -1090,7 +1383,7 @@ svg {
 }
 .ready-banner p {
   margin: 0;
-  color: #dce7f7;
+  color: var(--on-dark-muted);
 }
 .ready-grid {
   display: grid;
@@ -1184,7 +1477,7 @@ svg {
 .dashboard-progress {
   height: 0.35rem;
   margin-bottom: 1.5rem;
-  background: #dfe5ec;
+  background: var(--track);
 }
 .dashboard-progress > div {
   height: 100%;
@@ -1208,7 +1501,7 @@ svg {
   display: grid;
   gap: 0.6rem;
   padding: 1.5rem;
-  background: white;
+  background: var(--surface);
 }
 .dashboard-help p {
   margin: 0;
@@ -1260,7 +1553,6 @@ svg {
 
 @media (max-width: 760px) {
   .public-header,
-  .gateway-header,
   .dashboard-header {
     height: 4rem;
     padding: 0 1rem;
@@ -1320,14 +1612,41 @@ svg {
   .prepare-grid article {
     min-height: 0;
   }
-  .gateway-main {
+  /* Stacked: the visual becomes a banner that states where you are, the form
+     gets the rest. It keeps its own scroll off the visual. */
+  .gateway-page {
     grid-template-columns: 1fr;
-    gap: 2rem;
-    width: calc(100% - 2rem);
-    padding: 2rem 0;
+  }
+  .gateway-visual-body {
+    min-height: 0;
+    gap: 1.5rem;
+    padding: 1.5rem 1rem 2rem;
+  }
+  .gateway-visual-foot {
+    display: none;
   }
   .gateway-context h1 {
-    font-size: 2.6rem;
+    font-size: 2.35rem;
+  }
+  .gateway-context p {
+    margin-bottom: 1.25rem;
+    font-size: 1rem;
+  }
+  .gateway-form > .prototype-note,
+  .gateway-form-body {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .gateway-form-body {
+    width: 100%;
+    padding-top: 2rem;
+  }
+  .gateway-form-actions {
+    flex-direction: column-reverse;
+  }
+  .gateway-form-actions button {
+    width: 100%;
+    justify-content: center;
   }
   .prototype-note {
     flex-direction: column;
@@ -1390,6 +1709,12 @@ svg {
   }
   .inline-question .radio-cards {
     grid-template-columns: repeat(3, 1fr);
+  }
+  /* Not enough width for question and answer side by side. */
+  .inline-question--compact {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 0.6rem;
   }
   .block--row {
     grid-template-columns: auto 1fr;
@@ -1460,5 +1785,210 @@ svg {
   .form-card {
     border: 0;
     box-shadow: none;
+  }
+}
+
+/* ---- Declared stops: the exit is a link out, never a second primary -------- */
+.dead-end-exit {
+  display: inline-flex;
+  padding: 0;
+  margin-top: 0.5rem;
+  height: auto;
+  font-weight: 600;
+}
+
+/* ---- Derivation trace: the two facts a result is worked out from ----------- */
+.derivation-trace {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.7rem;
+}
+.derivation-trace > div {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 1rem;
+  background: var(--kind-derived-bg);
+  border: 1px solid var(--kind-derived-line);
+}
+.derivation-trace span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--kind-derived-ink);
+}
+.derivation-trace strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+/* A result that is still open never blocks the footer; this says so in place. */
+.override-note {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted-ink);
+}
+
+/* ---- Documents: mock upload + per-row proof disclosure ---------------------- */
+.mock-upload {
+  display: grid;
+  gap: 0.4rem;
+}
+.mock-upload input {
+  width: min(22rem, 100%);
+}
+.mock-upload small {
+  color: var(--muted-ink);
+}
+.doc-proof {
+  border-top: 1px dashed var(--line);
+}
+.doc-proof [data-slot="accordion-trigger"] {
+  font-size: 0.85rem;
+  padding: 0.6rem 0;
+}
+.doc-proof [data-slot="accordion-content"] {
+  font-size: 0.85rem;
+  color: var(--muted-ink);
+}
+
+/* ---- Payment lives on the page now, not in a modal -------------------------- */
+.pay-action {
+  justify-self: start;
+}
+
+/* ---- User menu: hand-built, state-toggled ------------------------------------ */
+.workspace-header .user-menu {
+  display: block;
+  position: relative;
+  text-align: left;
+  font-size: inherit;
+}
+.user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.75rem 0.35rem 0.4rem;
+  font-size: 0.8rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 1px solid var(--line-firm);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.user-chip:hover {
+  background: var(--surface-hover);
+}
+.user-initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: var(--civic-navy);
+  color: var(--on-dark);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.user-pop {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.5rem);
+  z-index: 30;
+  display: grid;
+  gap: 0.6rem;
+  min-width: 15rem;
+  padding: 0.9rem;
+  background: var(--surface);
+  border: 1px solid var(--line-firm);
+  box-shadow: var(--shadow-md);
+}
+.user-pop > div {
+  display: grid;
+  gap: 0.15rem;
+}
+.user-pop strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+.user-pop small {
+  color: var(--muted-ink);
+}
+.user-pop button {
+  justify-content: flex-start;
+}
+
+/* ---- Pre-flight: the journey visible before entering it --------------------- */
+.preflight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.5rem;
+}
+.preflight-grid h3 {
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted-ink);
+}
+.preflight-stages ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.55rem;
+  counter-reset: preflight;
+}
+.preflight-stages li {
+  display: grid;
+  gap: 0.1rem;
+  padding-left: 1.7rem;
+  position: relative;
+  counter-increment: preflight;
+}
+.preflight-stages li::before {
+  content: counter(preflight);
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--civic-navy);
+  border: 1px solid var(--line-firm);
+  border-radius: 999px;
+}
+.preflight-stages strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+.preflight-stages span {
+  font-size: 0.8rem;
+  color: var(--muted-ink);
+}
+.preflight-evidence ul {
+  margin: 0 0 0.7rem;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.preflight-evidence p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted-ink);
+}
+
+@media (max-width: 900px) {
+  .user-chip {
+    padding: 0.25rem;
+  }
+  .user-chip .user-mail {
+    display: none;
   }
 }

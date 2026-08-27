@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test"
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("http://127.0.0.1:5173/")
+  await page.goto("/")
   await page.evaluate(() => localStorage.clear())
   await page.reload()
 })
@@ -12,7 +12,7 @@ test("completes the first-passport happy path", async ({ page }) => {
   await page.getByRole("button", { name: /continue with mock sign-in/i }).click()
   const continueButton = page.getByRole("button", { name: /^continue/i })
   for (const heading of ["Personal & history", "Family details", "Contacts & legal", "Address & office", "Passport options", "Documents"]) {
-    await expect(page.getByRole("heading", { name: heading })).toBeVisible()
+    await expect(page.getByRole("heading", { name: heading, exact: true })).toBeVisible()
     await continueButton.click()
   }
   await expect(page.getByRole("heading", { name: "Review your application" })).toBeVisible()
@@ -20,15 +20,16 @@ test("completes the first-passport happy path", async ({ page }) => {
   await page.getByRole("button", { name: /submit mock application/i }).click()
   await expect(page.getByRole("heading", { name: "Choose an appointment" })).toBeVisible()
   await page.getByRole("button", { name: /PSK Bengaluru, Lalbagh/i }).click()
-  await page.getByRole("button", { name: /continue to mock payment/i }).click()
-  const selects = page.locator(".payment-content [data-slot='select-trigger']")
+  // Payment confirms the appointment, so it comes before the exact slot.
+  await page.getByRole("button", { name: /pay mock fee/i }).click()
+  await expect(page.getByText("Mock payment failed")).toBeVisible()
+  await page.getByRole("button", { name: /retry mock payment/i }).click()
+  await expect(page.getByText("Mock payment completed", { exact: false }).first()).toBeVisible()
+  const selects = page.locator(".form-grid [data-slot='select-trigger']")
   await selects.nth(0).click()
   await page.getByRole("option", { name: "Thu, 03 Sep" }).click()
   await selects.nth(1).click()
   await page.getByRole("option", { name: "09:30" }).click()
-  await page.getByRole("button", { name: /pay mock fee and confirm/i }).click()
-  await expect(page.getByText("Mock payment failed")).toBeVisible()
-  await page.getByRole("button", { name: /retry mock payment/i }).click()
   await expect(page.getByRole("button", { name: /view appointment summary/i })).toBeEnabled()
   await page.getByRole("button", { name: /view appointment summary/i }).click()
   await expect(page.getByRole("heading", { name: "Prepared for your appointment" })).toBeVisible()
@@ -50,7 +51,7 @@ test("mobile exposes application navigation in a drawer", async ({ page }) => {
   await page.getByRole("button", { name: /start first-passport application/i }).click()
   await page.getByRole("button", { name: /continue with mock sign-in/i }).click()
   await page.getByRole("button", { name: "Open application menu" }).click()
-  for (const name of ["My applications", "Documents", "Help for this stage", "Save & exit"]) {
+  for (const name of ["My applications", "Document library", "Help for this stage", "Save & exit"]) {
     await expect(page.getByRole("button", { name })).toBeVisible()
   }
 })

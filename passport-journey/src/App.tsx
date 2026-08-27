@@ -16,6 +16,7 @@ import {
   HelpCircle,
   Home,
   Landmark,
+  Library,
   LogOut,
   MapPin,
   Menu,
@@ -72,6 +73,11 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   addressEvidence,
   appointmentDays,
   appointmentSlots,
@@ -89,6 +95,8 @@ import {
   readinessItems,
   steps,
   type ApplicationDraft,
+  type DocumentRequirement,
+  type DocumentSourceValue,
   type EvidenceState,
   type SaveState,
   type View,
@@ -113,9 +121,19 @@ function PrototypeNotice({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function Brand({ small = false }: { small?: boolean }) {
+function Brand({
+  small = false,
+  onDark = false,
+}: {
+  small?: boolean;
+  onDark?: boolean;
+}) {
   return (
-    <div className={small ? "brand small" : "brand"}>
+    <div
+      className={["brand", small && "small", onDark && "on-dark"]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <span className="brand-mark" aria-hidden="true">
         PJ
       </span>
@@ -165,15 +183,36 @@ function Field({
 }) {
   return (
     <div className="form-field">
-      <Label>{label}</Label>
+      <div className="field-label-row">
+        <Label>{label}</Label>
+        {help && <FieldHelp label={label} help={help} />}
+      </div>
       {children}
-      {help && (
-        <p className="field-help">
-          <CircleHelp />
-          {help}
-        </p>
-      )}
     </div>
+  );
+}
+
+/**
+ * The formatting notes sit behind the icon rather than under the input. They
+ * are worth reading once and then in the way, so they stay reachable without
+ * holding a line of vertical space on every field. The trigger is a real
+ * button so focus and Escape work, and it sits outside the <label> so that
+ * pressing it does not also activate the input.
+ */
+function FieldHelp({ label, help }: { label: string; help: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <button
+          type="button"
+          className="field-help-tip"
+          aria-label={`What to enter for ${label}`}
+        >
+          <CircleHelp aria-hidden="true" />
+        </button>
+      </TooltipTrigger>
+      <TooltipContent className="field-help-content">{help}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -267,16 +306,24 @@ function StartScreen({
         <Brand />
         <nav aria-label="Public service navigation">
           <a href="#services" className="active">
-            Start application
+            Find your service
           </a>
-          <button onClick={resume}>Resume application</button>
-          <a href="#other">Other services</a>
+          <a href="#prepare">What to expect</a>
+          <a href="#other">Other passport services</a>
         </nav>
         <div className="public-actions">
-          <button onClick={resume}>Sign in</button>
+          <Button variant="outline" onClick={resume}>
+            Sign in
+          </Button>
           <Badge variant="outline">Independent prototype</Badge>
         </div>
       </header>
+      {/*
+        Design plan 02 puts this directly below the primary header so status is
+        established without scrolling. It used to sit after </main>, which put
+        it 1,283px down the start page - past everything it was meant to frame.
+      */}
+      <PrototypeNotice />
       <main>
         <section className="service-hero" id="services">
           <img src={heroImage} alt="" />
@@ -403,7 +450,7 @@ function StartScreen({
                     </Button>
                   </section>
                   <section className="special-services" id="other">
-                    <strong>Special services</strong>
+                    <strong>Other passport services</strong>
                     <div className="route-options">
                       <button
                         className="route"
@@ -438,9 +485,9 @@ function StartScreen({
             </CardContent>
           </Card>
         </section>
-        <section className="prepare-section">
+        <section className="prepare-section" id="prepare">
           <div>
-            <span className="eyebrow">Before you start</span>
+            <span className="eyebrow">What to expect</span>
             <h2>Know what the journey asks of you.</h2>
             <p>
               Preparation appears before commitment: expected information, draft
@@ -475,7 +522,6 @@ function StartScreen({
           </div>
         </section>
       </main>
-      <PrototypeNotice />
       <Dialog open={Boolean(handoff)} onOpenChange={() => setHandoff(null)}>
         <DialogContent>
           <DialogHeader>
@@ -505,68 +551,74 @@ function SignInScreen({
 }) {
   return (
     <div className="gateway-page">
-      <header className="gateway-header">
-        <Brand />
-        <Badge variant="outline">Independent prototype</Badge>
-      </header>
-      <main className="gateway-main">
-        <section className="gateway-context">
-          <span className="eyebrow">Selected service</span>
-          <h1>First ordinary passport</h1>
-          <p>
-            Your route is ready. Sign in or create an account to start a draft
-            that can be resumed later.
+      {/* Split gateway: the visual half carries the brand and the route the
+          applicant just chose, the form half carries only the account step. */}
+      <aside className="gateway-visual">
+        <img src={heroImage} alt="" aria-hidden="true" />
+        <div className="gateway-visual-body">
+          <Brand onDark />
+          <section className="gateway-context">
+            <span className="eyebrow">Selected service</span>
+            <h1>First ordinary passport</h1>
+            <p>
+              Your route is ready. Sign in or create an account to start a draft
+              that can be resumed later.
+            </p>
+            <ul>
+              <li>
+                <Check />
+                Applying from India
+              </li>
+              <li>
+                <Check />
+                First ordinary passport
+              </li>
+              <li>
+                <Check />
+                Normal application route
+              </li>
+            </ul>
+          </section>
+          <p className="gateway-visual-foot">
+            A saved draft stays on this device. Nothing is submitted anywhere.
           </p>
-          <ul>
-            <li>
-              <Check />
-              Applying from India
-            </li>
-            <li>
-              <Check />
-              First ordinary passport
-            </li>
-            <li>
-              <Check />
-              Normal application route
-            </li>
-          </ul>
-        </section>
-        <Card className="signin-card">
-          <CardHeader>
-            <CardTitle>
-              <h2>Sign in to continue</h2>
-            </CardTitle>
-            <CardDescription>
+        </div>
+      </aside>
+      <main className="gateway-form">
+        {/* Design plan 02: the notice heads the column the applicant is
+            working in, so status is established without scrolling. */}
+        <PrototypeNotice compact />
+        <div className="gateway-form-body">
+          <div className="gateway-form-heading">
+            <h2>Sign in to continue</h2>
+            <p>
               This prototype uses a simulated account. No password, OTP, or
               government system is used.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="signin">
-              <TabsList>
-                <TabsTrigger value="signin">Sign in</TabsTrigger>
-                <TabsTrigger value="create">Create account</TabsTrigger>
-              </TabsList>
-              <TabsContent value="signin" className="signin-fields">
-                <Field label="Email or login ID">
-                  <Input defaultValue="aditi.demo@example.in" />
-                </Field>
-                <Field label="Password">
-                  <Input type="password" defaultValue="prototype" />
-                </Field>
-              </TabsContent>
-              <TabsContent value="create" className="signin-fields">
-                <Field label="Email">
-                  <Input defaultValue="aditi.demo@example.in" />
-                </Field>
-                <Field label="Mobile number">
-                  <Input defaultValue="9876543210" />
-                </Field>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-          <CardFooter className="step-actions">
+            </p>
+          </div>
+          <Tabs defaultValue="signin">
+            <TabsList>
+              <TabsTrigger value="signin">Sign in</TabsTrigger>
+              <TabsTrigger value="create">Create account</TabsTrigger>
+            </TabsList>
+            <TabsContent value="signin" className="signin-fields">
+              <Field label="Email or login ID">
+                <Input defaultValue="aditi.demo@example.in" />
+              </Field>
+              <Field label="Password">
+                <Input type="password" defaultValue="prototype" />
+              </Field>
+            </TabsContent>
+            <TabsContent value="create" className="signin-fields">
+              <Field label="Email">
+                <Input defaultValue="aditi.demo@example.in" />
+              </Field>
+              <Field label="Mobile number">
+                <Input defaultValue="9876543210" />
+              </Field>
+            </TabsContent>
+          </Tabs>
+          <div className="gateway-form-actions">
             <Button variant="outline" onClick={back}>
               <ArrowLeft />
               Back
@@ -574,10 +626,9 @@ function SignInScreen({
             <Button onClick={proceed}>
               Continue with mock sign-in <ArrowRight />
             </Button>
-          </CardFooter>
-        </Card>
+          </div>
+        </div>
       </main>
-      <PrototypeNotice />
     </div>
   );
 }
@@ -654,13 +705,13 @@ function Rail({
   current,
   saveExit,
   dashboard,
-  documents,
+  library,
   help,
 }: {
   current: number;
   saveExit: () => void;
   dashboard: () => void;
-  documents: () => void;
+  library: () => void;
   help: () => void;
 }) {
   return (
@@ -675,9 +726,10 @@ function Rail({
           <Home />
           My applications
         </button>
-        <button onClick={documents}>
-          <Store />
-          Documents
+        {/* Reference, not the stage — see DocumentLibrary. */}
+        <button onClick={library}>
+          <Library />
+          Document library
         </button>
         <button onClick={help}>
           <HelpCircle />
@@ -692,6 +744,173 @@ function Rail({
         <p>Your draft is saved before you leave.</p>
       </div>
     </aside>
+  );
+}
+
+/* Which stage each proof supports. The document *decision* is always made on
+   the Documents stage; this maps a document to the answer it stands behind,
+   which is the thing the library is for. */
+const documentSupports: Record<DocumentRequirement["id"], number> = {
+  birth: 0,
+  address: 3,
+  category: 4,
+};
+
+const documentSourceReference = [
+  {
+    title: "Shared through DigiLocker",
+    detail:
+      "Provided digitally in this mock journey. Digital sharing is shown separately from what still has to be produced in person.",
+  },
+  {
+    title: "Uploaded to this application",
+    detail:
+      "Attached here. This prototype records only that you attached something — no file is sent anywhere.",
+  },
+  {
+    title: "Original carried to the appointment",
+    detail: "Not shared digitally, so the document itself has to be with you.",
+  },
+  {
+    title: "Not decided yet",
+    detail:
+      "Every proof needs one of the routes above before the declaration stage will let you through.",
+  },
+];
+
+/*
+  The rail's entry opens this, not the Documents stage. They answer different
+  questions: the stage asks "where does each document come from for this
+  application", the library answers "what documents does this journey involve
+  at all, and what does each one stand behind". Reference, not a form.
+
+  What it deliberately does not contain: the accepted-document lists. The
+  prototype does not reproduce those anywhere, and a library is exactly where
+  inventing them would look most authoritative.
+*/
+function DocumentLibrary({
+  open,
+  onOpenChange,
+  draft,
+  openStage,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  draft: ApplicationDraft;
+  openStage: (n: number) => void;
+}) {
+  const docs = documentRequirements(draft);
+  const outstanding = docs.filter((doc) => doc.state !== "ready").length;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="doc-library">
+        <DialogHeader>
+          <DialogTitle>Document library</DialogTitle>
+          <DialogDescription>
+            Every document this application can involve, what each one stands
+            behind, and where it is decided.{" "}
+            {outstanding === 0
+              ? "All three have a preparation status."
+              : `${outstanding} of ${docs.length} still needs a decision.`}
+          </DialogDescription>
+        </DialogHeader>
+
+        <section className="doc-library-section">
+          <h3>What this application asks you to support</h3>
+          {docs.map((doc) => {
+            const supports = documentSupports[doc.id];
+            return (
+              <article className="doc-library-item" key={doc.id}>
+                <StateIcon state={doc.state} />
+                <div>
+                  <div className="doc-library-head">
+                    <strong>{doc.title}</strong>
+                    <Badge
+                      variant={
+                        doc.source === "shared" || doc.source === "upload"
+                          ? "default"
+                          : "outline"
+                      }
+                    >
+                      {doc.digitalStatus}
+                    </Badge>
+                  </div>
+                  <p>{doc.purpose}</p>
+                  <dl>
+                    <div>
+                      <dt>Stands behind</dt>
+                      <dd>{steps[supports].label}</dd>
+                    </div>
+                    <div>
+                      <dt>Decided on</dt>
+                      <dd>{steps[5].label}</dd>
+                    </div>
+                    <div>
+                      <dt>At the appointment</dt>
+                      <dd>{doc.appointmentAction}</dd>
+                    </div>
+                  </dl>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      onOpenChange(false);
+                      openStage(supports);
+                    }}
+                  >
+                    Open {steps[supports].label}
+                    <ChevronRight />
+                  </Button>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+
+        <section className="doc-library-section">
+          <h3>How a document can be provided</h3>
+          <p className="doc-library-lead">
+            The same four routes apply to every proof above, so the wording on
+            each row means the same thing everywhere.
+          </p>
+          <dl className="doc-library-routes">
+            {documentSourceReference.map((route) => (
+              <div key={route.title}>
+                <dt>{route.title}</dt>
+                <dd>{route.detail}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <Alert>
+          <ShieldCheck />
+          <AlertTitle>Which specific documents count</AlertTitle>
+          <AlertDescription>
+            The official accepted-document lists decide that, and they are the
+            authority. This prototype points at them rather than reproducing
+            them, because reproducing them wrongly would be worse than not
+            carrying them here at all. Check the official list for each proof
+            before your appointment.
+          </AlertDescription>
+        </Alert>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+          <Button
+            onClick={() => {
+              onOpenChange(false);
+              openStage(5);
+            }}
+          >
+            Set how each is provided
+            <ArrowRight />
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -746,8 +965,9 @@ function ApplicationShell({
   saveState,
   onStep,
   dashboard,
-  documents,
+  draft,
   saveExit,
+  signOut,
   children,
 }: {
   current: number;
@@ -755,18 +975,21 @@ function ApplicationShell({
   saveState: SaveState;
   onStep: (n: number) => void;
   dashboard: () => void;
-  documents: () => void;
+  draft: ApplicationDraft;
   saveExit: () => void;
+  signOut: () => void;
   children: ReactNode;
 }) {
   const [help, setHelp] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [userOpen, setUserOpen] = useState(false);
+  const [library, setLibrary] = useState(false);
   return (
     <div className="workspace">
       <Rail
         current={current}
         dashboard={dashboard}
-        documents={documents}
+        library={() => setLibrary(true)}
         help={() => setHelp(true)}
         saveExit={saveExit}
       />
@@ -789,6 +1012,31 @@ function ApplicationShell({
             <strong>FP-MOCK-2026-0148</strong>
           </div>
           <SaveStatus state={saveState} />
+          <div className="user-menu">
+            <button
+              className="user-chip"
+              onClick={() => setUserOpen((open) => !open)}
+              aria-expanded={userOpen}
+              aria-haspopup="true"
+            >
+              <span className="user-initial" aria-hidden="true">
+                A
+              </span>
+              <span className="user-mail">aditi.demo@example.in</span>
+            </button>
+            {userOpen && (
+              <div className="user-pop" role="menu">
+                <div>
+                  <strong>Aditi Demo</strong>
+                  <small>aditi.demo@example.in · mock account</small>
+                </div>
+                <Button variant="ghost" onClick={signOut}>
+                  <LogOut />
+                  Sign out
+                </Button>
+              </div>
+            )}
+          </div>
         </header>
         <PrototypeNotice compact />
         <ProgressNavigator
@@ -813,9 +1061,15 @@ function ApplicationShell({
               <Home />
               My applications
             </Button>
-            <Button variant="ghost" onClick={documents}>
-              <Store />
-              Documents
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setMenuOpen(false);
+                setLibrary(true);
+              }}
+            >
+              <Library />
+              Document library
             </Button>
             <Button
               variant="ghost"
@@ -835,6 +1089,12 @@ function ApplicationShell({
         </SheetContent>
       </Sheet>
       <HelpDialog open={help} onOpenChange={setHelp} current={current} />
+      <DocumentLibrary
+        open={library}
+        onOpenChange={setLibrary}
+        draft={draft}
+        openStage={onStep}
+      />
     </div>
   );
 }
@@ -848,6 +1108,10 @@ type StepProps = {
   next: () => void;
   back: () => void;
   jump: (n: number) => void;
+  /** Save the draft and leave to My applications — the exit every declared stop offers. */
+  exit: () => void;
+  /** Leave to the public services list, for stops that belong to a different service. */
+  services: () => void;
 };
 
 function StepFrame({
@@ -906,6 +1170,38 @@ function StepFrame({
   );
 }
 
+/**
+ * A declared stop. The register's complaint about the dead ends was never that
+ * they exist — it is that they were undeclared and offered no way out. This
+ * keeps the stop, names it, and gives it a real exit. Forward motion still
+ * lives only in the footer; this is a link out, not a second primary.
+ */
+function DeadEnd({
+  title,
+  actionLabel,
+  onAction,
+  children,
+}: {
+  title: string;
+  actionLabel: string;
+  onAction: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <Alert>
+      <CircleHelp />
+      <AlertTitle>{title}</AlertTitle>
+      <AlertDescription>
+        {children}
+        <Button variant="link" className="dead-end-exit" onClick={onAction}>
+          {actionLabel}
+          <ChevronRight />
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 function HistoryQuestion({
   label,
   value,
@@ -916,7 +1212,7 @@ function HistoryQuestion({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="inline-question">
+    <div className="inline-question inline-question--compact">
       <Label>{label}</Label>
       <RadioCards
         name={label}
@@ -938,28 +1234,54 @@ function NamePreview({ draft }: { draft: ApplicationDraft }) {
   if (preview.isEmpty) return null;
   return (
     <div className="name-preview block block--derived">
-      <span className="kind-tag kind-derived">{blockKindLabel.derived}</span>
-      <strong>Your passport would read</strong>
-      <dl>
-        <div>
-          <dt>Surname</dt>
-          <dd>
-            {preview.hasSurname ? (
-              preview.surname
-            ) : (
-              <em>blank — you do not use a surname</em>
-            )}
-          </dd>
-        </div>
-        <div>
-          <dt>Given name(s)</dt>
-          <dd>{preview.given || <em>not entered yet</em>}</dd>
-        </div>
-      </dl>
-      <p>
-        Check this against the record you will carry. A name split across the
-        wrong field is corrected at the passport office, not here.
-      </p>
+      {/*
+        Everything except the result folds away, so the closed state is one row
+        - a preview nobody opens is not a preview, but a block that costs six
+        lines while agreeing with you is not worth them either.
+
+        The "derived" kind is still declared while closed: the gold left accent
+        bar carries that axis on its own (see the two-axis note above the
+        .block-- rules), so the pill, which is the same axis in words, can fold
+        with the detail. Format warnings stay outside the fold - see below.
+      */}
+      <Accordion type="single" collapsible className="name-preview-fold">
+        <AccordionItem value="name">
+          <AccordionTrigger>
+            <span className="name-preview-head">
+              <strong>Your passport would read</strong>
+              <span className="name-preview-line">
+                {preview.hasSurname ? `${preview.surname}, ` : ""}
+                {preview.given || "not entered yet"}
+              </span>
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <span className="kind-tag kind-derived">
+              {blockKindLabel.derived}
+            </span>
+            <dl>
+              <div>
+                <dt>Surname</dt>
+                <dd>
+                  {preview.hasSurname ? (
+                    preview.surname
+                  ) : (
+                    <em>blank — you do not use a surname</em>
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt>Given name(s)</dt>
+                <dd>{preview.given || <em>not entered yet</em>}</dd>
+              </div>
+            </dl>
+            <p>
+              Check this against the record you will carry. A name split across
+              the wrong field is corrected at the passport office, not here.
+            </p>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
       {notes.length > 0 && (
         <Alert className="evidence-attention">
           <AlertCircle />
@@ -977,7 +1299,7 @@ function NamePreview({ draft }: { draft: ApplicationDraft }) {
   );
 }
 
-function PersonalStep({ draft, update, next, back }: StepProps) {
+function PersonalStep({ draft, update, next, back, services }: StepProps) {
   const blocked =
     !draft.givenName ||
     !draft.dateOfBirth ||
@@ -993,8 +1315,7 @@ function PersonalStep({ draft, update, next, back }: StepProps) {
     >
       <section className="form-section">
         <SectionHeading kind="information" title="Your name">
-          The official form uses two name fields, not three. There is no
-          separate middle-name box, which is where most name mistakes start.
+          Two name fields, not three — there is no separate middle-name box.
         </SectionHeading>
         <div className="form-grid">
           <Field
@@ -1032,7 +1353,10 @@ function PersonalStep({ draft, update, next, back }: StepProps) {
               onChange={(e) => update("dateOfBirth", e.target.value)}
             />
           </Field>
-          <Field label="Place of birth">
+          <Field
+            label="Place of birth"
+            help="Written exactly as on the record you will provide. If your records disagree about place of birth, that is worth resolving before applying — it can be checked against your documents."
+          >
             <Input
               value={draft.placeOfBirth}
               onChange={(e) => update("placeOfBirth", e.target.value)}
@@ -1082,8 +1406,16 @@ function PersonalStep({ draft, update, next, back }: StepProps) {
             <AlertCircle />
             <AlertTitle>This may not be a fresh-passport route</AlertTitle>
             <AlertDescription>
-              Return to service discovery and choose the re-issue route instead
-              of forcing a fresh application.
+              A passport you hold or held makes this a re-issue, not a fresh
+              application. Your draft stays saved if you leave.
+              <Button
+                variant="link"
+                className="dead-end-exit"
+                onClick={services}
+              >
+                See the passport services list
+                <ChevronRight />
+              </Button>
             </AlertDescription>
           </Alert>
         )}
@@ -1092,7 +1424,7 @@ function PersonalStep({ draft, update, next, back }: StepProps) {
   );
 }
 
-function FamilyStep({ draft, update, next, back }: StepProps) {
+function FamilyStep({ draft, update, next, back, exit }: StepProps) {
   return (
     <StepFrame
       eyebrow="About you · 2 of 3"
@@ -1111,8 +1443,10 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
           kind="information"
           title="Which situation applies to you?"
         >
-          This is asked before the name fields, because the answer decides which
-          fields the official form actually requires.
+          Asked before the name fields because it decides which of them this
+          prototype then shows. The official form requires both parents'
+          details; which fields a different situation needs is not something
+          this prototype knows.
         </SectionHeading>
         <RadioCards
           name="Family situation"
@@ -1129,12 +1463,13 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
             {
               value: "guardian",
               title: "A legal guardian applies",
-              detail: "Different official fields are required.",
+              detail: "This prototype does not carry the guardian route.",
             },
             {
               value: "help",
               title: "I need help answering",
-              detail: "Single-parent, adoption or other situations.",
+              detail:
+                "Single-parent, adoption or other situations. Not an option on the official form - it is ours, and it leads to help rather than onward.",
             },
           ]}
         />
@@ -1170,22 +1505,26 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
           </section>
         </>
       ) : (
-        <Alert>
-          <CircleHelp />
-          <AlertTitle>This situation needs the assisted route</AlertTitle>
-          <AlertDescription>
-            A production service reveals the official fields and support for
-            this situation here. This prototype does not invent those rules, so
-            the route stops at this point. Select the first option to continue
-            the demonstrated journey.
-          </AlertDescription>
-        </Alert>
+        <DeadEnd
+          title={
+            draft.familySituation === "guardian"
+              ? "The guardian route is not built in this prototype"
+              : "This situation needs the assisted route"
+          }
+          actionLabel="Save and return to My applications"
+          onAction={exit}
+        >
+          A production service reveals the official fields and support for
+          this situation here. This prototype does not invent those rules, so
+          the route ends here rather than pretending to continue. Everything
+          you have entered is saved.
+        </DeadEnd>
       )}
     </StepFrame>
   );
 }
 
-function ContactsStep({ draft, update, next, back }: StepProps) {
+function ContactsStep({ draft, update, next, back, exit }: StepProps) {
   return (
     <StepFrame
       eyebrow="About you · 3 of 3"
@@ -1204,7 +1543,7 @@ function ContactsStep({ draft, update, next, back }: StepProps) {
       <section className="form-section">
         <SectionHeading kind="information" title="Emergency contact">
           One person the service can reach about your application if it cannot
-          reach you. This is not a reference and is not contacted for checks.
+          reach you. Separate from the two references below.
         </SectionHeading>
         <div className="form-grid">
           <Field label="Full name">
@@ -1225,10 +1564,9 @@ function ContactsStep({ draft, update, next, back }: StepProps) {
       <Separator />
       <section className="form-section">
         <SectionHeading kind="information" title="Two local references">
-          A different purpose from the emergency contact: these are two people
-          near your present address who appear as required fields on the
-          official fresh-passport form. They are kept for that reason, not
-          because the redesign wants them.
+          A different purpose from the emergency contact: two people who appear
+          as required fields on the official fresh-passport form. They are kept
+          for that reason, not because the redesign wants them.
         </SectionHeading>
         <div className="form-grid">
           <Field label="Reference 1">
@@ -1272,14 +1610,15 @@ function ContactsStep({ draft, update, next, back }: StepProps) {
         </div>
       </section>
       {draft.legalCheck !== "no" && (
-        <Alert>
-          <CircleHelp />
-          <AlertTitle>Do not guess here</AlertTitle>
-          <AlertDescription>
-            Review the unchanged official questions or use assisted support. The
-            prototype does not determine legal eligibility.
-          </AlertDescription>
-        </Alert>
+        <DeadEnd
+          title="Do not guess here"
+          actionLabel="Save and return to My applications"
+          onAction={exit}
+        >
+          Review the unchanged official questions or use assisted support. The
+          prototype does not determine legal eligibility. Your draft is saved
+          while you check.
+        </DeadEnd>
       )}
     </StepFrame>
   );
@@ -1392,33 +1731,29 @@ function AddressStep({ draft, update, next, back }: StepProps) {
   );
 }
 
+const educationLabels: Record<ApplicationDraft["highestEducation"], string> = {
+  graduate: "Graduate or above",
+  school: "School education",
+  another: "Another qualification",
+  unsure: "Not sure",
+};
+
+const abroadLabels: Record<ApplicationDraft["employmentAbroad"], string> = {
+  no: "No",
+  yes: "Yes",
+  unsure: "Not sure",
+};
+
 function OptionsStep({ draft, update, next, back }: StepProps) {
   const guidance = categoryGuidance(draft);
   return (
     <StepFrame
       eyebrow="Address & evidence · 2 of 3"
-      title="Passport category, booklet and fee"
-      intro="One thing on this page is yours to choose. The other is worked out from two facts about you — you are not asked to classify yourself."
+      title="Passport options"
+      intro="Nothing on this page is a decision you make. It records two facts about you and shows what they point to — you are not asked to classify yourself."
       back={back}
       next={next}
-      nextDisabled={guidance.state !== "ready"}
     >
-      <section className="form-section">
-        <SectionHeading kind="choice" title="Booklet size">
-          {bookletDifference}
-        </SectionHeading>
-        <RadioCards
-          name="Booklet"
-          value={draft.booklet}
-          onChange={(v) => update("booklet", v as ApplicationDraft["booklet"])}
-          options={bookletChoices.map((choice) => ({
-            value: choice.value,
-            title: choice.title,
-            detail: `${choice.detail} Mock indicative fee ${bookletFee(choice.value)}.`,
-          }))}
-        />
-      </section>
-      <Separator />
       <section className="form-section">
         <SectionHeading
           kind="information"
@@ -1471,18 +1806,49 @@ function OptionsStep({ draft, update, next, back }: StepProps) {
       <Separator />
       <section className="form-section">
         <SectionHeading kind="derived" title="What those two answers point to">
-          A result, not an option. The documents that have to support it are
-          listed on the next page.
+          A result, not an option — worked out from exactly the two answers
+          shown here, and nothing else.
         </SectionHeading>
+        <div className="derivation-trace">
+          <div>
+            <span>Highest completed education</span>
+            <strong>{educationLabels[draft.highestEducation]}</strong>
+          </div>
+          <div>
+            <span>Employment where clearance may apply</span>
+            <strong>{abroadLabels[draft.employmentAbroad]}</strong>
+          </div>
+        </div>
         <Alert className={`evidence-${guidance.state}`}>
           <StateIcon state={guidance.state} />
           <AlertTitle>{guidance.label}</AlertTitle>
           <AlertDescription>{guidance.detail}</AlertDescription>
         </Alert>
+        {guidance.state !== "ready" && (
+          <p className="override-note">
+            This does not stop you. You can continue and come back — the review
+            stage lists anything still open, and the official process makes the
+            final determination.
+          </p>
+        )}
+      </section>
+      <Separator />
+      <section className="form-section">
+        <SectionHeading kind="information" title="Booklet size and fee">
+          Chosen at the payment stage, where the price decision actually lands
+          — not here. The two sizes and their mock fees appear next to the
+          payment button.
+        </SectionHeading>
       </section>
     </StepFrame>
   );
 }
+
+const documentDraftKeys = {
+  birth: ["birthDocument", "birthDocumentName"],
+  address: ["addressDocument", "addressDocumentName"],
+  category: ["educationDocument", "educationDocumentName"],
+} as const;
 
 function DocumentsStep({ draft, update, next, back }: StepProps) {
   const docs = documentRequirements(draft);
@@ -1491,37 +1857,35 @@ function DocumentsStep({ draft, update, next, back }: StepProps) {
     <StepFrame
       eyebrow="Address & evidence · 3 of 3"
       title="Documents"
-      intro="Every row here is evidence for something you already entered. Nothing on this page is a new decision about your passport."
+      intro="Every row here is evidence for something you already entered. The only question each row asks is where the document comes from."
       back={back}
       next={next}
       nextDisabled={blocked}
     >
-      {docs.map((doc) => (
-        <article className="document-row" key={doc.id}>
-          <StateIcon state={doc.state} />
-          <div>
-            <div className="document-title">
-              <h2>{doc.title}</h2>
-              <Badge
-                variant={
-                  doc.digitalStatus === "Shared through DigiLocker"
-                    ? "default"
-                    : "outline"
-                }
-              >
-                {doc.digitalStatus}
-              </Badge>
-            </div>
-            <p>{doc.purpose}</p>
-            <strong>{doc.appointmentAction}</strong>
-            {doc.id === "birth" && (
+      {docs.map((doc) => {
+        const [sourceKey, nameKey] = documentDraftKeys[doc.id];
+        return (
+          <article className="document-row" key={doc.id}>
+            <StateIcon state={doc.state} />
+            <div>
+              <div className="document-title">
+                <h2>{doc.title}</h2>
+                <Badge
+                  variant={
+                    doc.source === "shared" || doc.source === "upload"
+                      ? "default"
+                      : "outline"
+                  }
+                >
+                  {doc.digitalStatus}
+                </Badge>
+              </div>
+              <p>{doc.purpose}</p>
+              <strong>{doc.appointmentAction}</strong>
               <Select
-                value={draft.birthDocument}
+                value={draft[sourceKey]}
                 onValueChange={(v) =>
-                  update(
-                    "birthDocument",
-                    v as ApplicationDraft["birthDocument"],
-                  )
+                  update(sourceKey, v as DocumentSourceValue)
                 }
               >
                 <SelectTrigger>
@@ -1531,37 +1895,50 @@ function DocumentsStep({ draft, update, next, back }: StepProps) {
                   <SelectItem value="shared">
                     Mock shared through DigiLocker
                   </SelectItem>
-                  <SelectItem value="carry">Not digitally shared</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-            {doc.id === "category" && (
-              <Select
-                value={draft.educationDocument}
-                onValueChange={(v) =>
-                  update(
-                    "educationDocument",
-                    v as ApplicationDraft["educationDocument"],
-                  )
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="shared">
-                    Mock shared through DigiLocker
+                  <SelectItem value="upload">
+                    Upload from this device
                   </SelectItem>
-                  <SelectItem value="carry">Not digitally shared</SelectItem>
+                  <SelectItem value="carry">
+                    Carry the original to the appointment
+                  </SelectItem>
                   <SelectItem value="missing">
                     I do not have it ready
                   </SelectItem>
                 </SelectContent>
               </Select>
-            )}
-          </div>
-        </article>
-      ))}
+              {draft[sourceKey] === "upload" && (
+                <div className="mock-upload">
+                  <Input
+                    type="file"
+                    aria-label={`Attach a file as ${doc.title.toLowerCase()}`}
+                    onChange={(e) =>
+                      update(nameKey, e.target.files?.[0]?.name ?? "")
+                    }
+                  />
+                  <small>
+                    {draft[nameKey] ? `Attached: ${draft[nameKey]}. ` : ""}
+                    The file itself is not sent anywhere — this prototype
+                    records only that you attached it.
+                  </small>
+                </div>
+              )}
+              <Accordion type="single" collapsible className="doc-proof">
+                <AccordionItem value="accepted">
+                  <AccordionTrigger>
+                    Which documents are accepted as this proof?
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    The official accepted-document list applies here. This
+                    prototype does not reproduce that list, because reproducing
+                    it wrongly is worse than pointing at it. Check the official
+                    list for this proof before the appointment.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+          </article>
+        );
+      })}
       <Alert>
         <ShieldCheck />
         <AlertTitle>What DigiLocker changes</AlertTitle>
@@ -1655,14 +2032,13 @@ function ReviewStep({ draft, update, next, back, jump }: StepProps) {
           </Button>
           <div>
             <span>What you chose</span>
-            <strong>
-              Fresh ordinary · Normal · {draft.booklet}-page booklet
-            </strong>
-            <p>Mock indicative fee {bookletFee(draft.booklet)}.</p>
+            <strong>Fresh ordinary · Normal route</strong>
+            <p>
+              Booklet size and fee are chosen at the payment stage, after this
+              review — where the price decision actually lands.
+            </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => jump(4)}>
-            Edit
-          </Button>
+          <span aria-hidden="true" />
           <div>
             <span>What was worked out for you</span>
             <strong>{categoryGuidance(draft).label}</strong>
@@ -1716,7 +2092,6 @@ function ReviewStep({ draft, update, next, back, jump }: StepProps) {
 }
 
 function AppointmentStep({ draft, update, next, back }: StepProps) {
-  const [paymentOpen, setPaymentOpen] = useState(false);
   const paid = draft.payment === "paid";
   const pay = () => {
     update("payment", "processing");
@@ -1726,7 +2101,6 @@ function AppointmentStep({ draft, update, next, back }: StepProps) {
     update("payment", "processing");
     window.setTimeout(() => {
       update("payment", "paid");
-      setPaymentOpen(false);
       toast.success("Mock payment completed. Appointment confirmed.");
     }, 700);
   };
@@ -1734,12 +2108,33 @@ function AppointmentStep({ draft, update, next, back }: StepProps) {
     <StepFrame
       eyebrow="Appointment · 1 of 2"
       title="Choose an appointment"
-      intro="See office hierarchy and indicative availability first. An exact date and time is confirmed only after mock payment."
+      intro="Booklet, centre, payment, then the exact slot — in that order, because payment is what confirms the appointment. The same order as the official flow."
       back={back}
-      next={paid ? next : () => setPaymentOpen(true)}
-      nextLabel={paid ? "View appointment summary" : "Continue to mock payment"}
-      nextDisabled={draft.centre === null}
+      next={next}
+      nextLabel="View appointment summary"
+      nextDisabled={!paid || draft.day === null || draft.slot === null}
     >
+      <section className="form-section">
+        <SectionHeading kind="choice" title="Booklet size">
+          {bookletDifference} This choice sits here, next to the payment,
+          because this is where its price lands.
+        </SectionHeading>
+        <RadioCards
+          name="Booklet"
+          value={draft.booklet}
+          onChange={(v) => update("booklet", v as ApplicationDraft["booklet"])}
+          options={bookletChoices.map((choice) => ({
+            value: choice.value,
+            title: choice.title,
+            detail: `${choice.detail} Mock indicative fee ${bookletFee(choice.value)}.`,
+          }))}
+        />
+        <div className="fee-row">
+          <span>Mock application fee</span>
+          <strong>{bookletFee(draft.booklet)}</strong>
+        </div>
+      </section>
+      <Separator />
       <Alert>
         <MapPin />
         <AlertTitle>How the locations relate</AlertTitle>
@@ -1789,22 +2184,67 @@ function AppointmentStep({ draft, update, next, back }: StepProps) {
             <p>
               Earliest shown: {centres[draft.centre].earliest}.{" "}
               {paid
-                ? "Your confirmed date and time are on the appointment summary."
-                : "The exact slot is selected in the mock payment step, using the button below."}
+                ? "Your confirmed date and time are selected below."
+                : "The exact slot unlocks after the mock payment below."}
             </p>
           </div>
         </section>
       )}
-      <Dialog open={paymentOpen} onOpenChange={setPaymentOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Mock payment and slot</DialogTitle>
-            <DialogDescription>
-              No real payment or government appointment is made. Every date,
-              slot, and transaction is synthetic.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="payment-content">
+      <Separator />
+      <section className="form-section">
+        <SectionHeading kind="information" title="Mock payment">
+          Payment confirms the appointment, so it comes before the exact slot —
+          the same order as the official flow. No real payment is made and no
+          government appointment exists.
+        </SectionHeading>
+        {draft.payment === "failed" && (
+          <Alert variant="destructive">
+            <AlertCircle />
+            <AlertTitle>Mock payment failed</AlertTitle>
+            <AlertDescription>
+              No money was charged and your draft is safe. Retry without
+              re-entering the application.
+            </AlertDescription>
+          </Alert>
+        )}
+        {paid ? (
+          <Alert className="evidence-ready">
+            <CheckCircle2 />
+            <AlertTitle>Mock payment completed</AlertTitle>
+            <AlertDescription>
+              The fee of {bookletFee(draft.booklet)} is recorded as paid.
+              Choose the exact date and time below.
+            </AlertDescription>
+          </Alert>
+        ) : draft.payment === "failed" ? (
+          <Button className="pay-action" onClick={retry}>
+            Retry mock payment
+          </Button>
+        ) : (
+          <Button
+            className="pay-action"
+            onClick={pay}
+            disabled={draft.centre === null || draft.payment === "processing"}
+          >
+            {draft.payment === "processing"
+              ? "Processing…"
+              : `Pay mock fee ${bookletFee(draft.booklet)}`}
+            <WalletCards />
+          </Button>
+        )}
+        {draft.centre === null && !paid && (
+          <p className="override-note">
+            Select a centre first — the payment is tied to it.
+          </p>
+        )}
+      </section>
+      {paid && (
+        <>
+          <Separator />
+          <section className="form-section">
+            <SectionHeading kind="choice" title="Exact date and time">
+              Confirmed by the payment above. Every date and slot is synthetic.
+            </SectionHeading>
             <div className="form-grid">
               <Field label="Select date">
                 <Select
@@ -1846,42 +2286,9 @@ function AppointmentStep({ draft, update, next, back }: StepProps) {
                 </Select>
               </Field>
             </div>
-            <div className="fee-row">
-              <span>Mock application fee</span>
-              <strong>{bookletFee(draft.booklet)}</strong>
-            </div>
-            {draft.payment === "failed" && (
-              <Alert variant="destructive">
-                <AlertCircle />
-                <AlertTitle>Mock payment failed</AlertTitle>
-                <AlertDescription>
-                  No money was charged and your draft is safe. Retry without
-                  re-entering the application.
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-          <DialogFooter>
-            {draft.payment === "failed" ? (
-              <Button onClick={retry}>Retry mock payment</Button>
-            ) : (
-              <Button
-                onClick={pay}
-                disabled={
-                  draft.day === null ||
-                  draft.slot === null ||
-                  draft.payment === "processing"
-                }
-              >
-                {draft.payment === "processing"
-                  ? "Processing…"
-                  : "Pay mock fee and confirm"}
-                <WalletCards />
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </section>
+        </>
+      )}
     </StepFrame>
   );
 }
@@ -1975,18 +2382,19 @@ function Dashboard({
   current,
   resume,
   documents,
-  restart,
+  signOut,
 }: {
   current: number;
   resume: () => void;
   documents: () => void;
-  restart: () => void;
+  signOut: () => void;
 }) {
   return (
     <div className="dashboard-page">
       <header className="dashboard-header">
         <Brand />
-        <Button variant="ghost" onClick={restart}>
+        <Button variant="ghost" onClick={signOut}>
+          <LogOut />
           Sign out
         </Button>
       </header>
@@ -2004,7 +2412,9 @@ function Dashboard({
               <CardTitle>
                 <h2>Fresh ordinary passport</h2>
               </CardTitle>
-              <CardDescription>FP-MOCK-2026-0148</CardDescription>
+              <CardDescription>
+                FP-MOCK-2026-0148 · started 12 Aug 2026 (mock)
+              </CardDescription>
             </div>
             <span className="draft-step">
               Stage {current + 1} of 9<br />
@@ -2022,10 +2432,60 @@ function Dashboard({
                 Resume {steps[current].short}
                 <ArrowRight />
               </Button>
+              {/* Goes to the stage, so it says so. The reference view is the
+                  Document library, reached from the rail inside the shell. */}
               <Button variant="outline" onClick={documents}>
                 <Store />
-                View document checklist
+                Prepare documents
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="preflight-card">
+          <CardHeader>
+            <div>
+              <Badge variant="outline">Before you sit down</Badge>
+              <CardTitle>
+                <h2>What this application will ask of you</h2>
+              </CardTitle>
+              <CardDescription>
+                The whole journey, visible before you enter it — so nothing
+                inside is a surprise.
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="preflight-grid">
+              <div className="preflight-stages">
+                <h3>The stages</h3>
+                <ol>
+                  {chapterRanges.map((chapter) => (
+                    <li key={chapter.label}>
+                      <strong>{chapter.label}</strong>
+                      <span>
+                        {steps
+                          .slice(chapter.start, chapter.end + 1)
+                          .map((step) => step.short)
+                          .join(" · ")}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div className="preflight-evidence">
+                <h3>Evidence it will ask about</h3>
+                <ul>
+                  <li>Proof of date and place of birth</li>
+                  <li>Proof of your present address</li>
+                  <li>
+                    Education record, used for the emigration-check category
+                  </li>
+                </ul>
+                <p>
+                  The exact accepted documents come from the official lists,
+                  which this prototype points to rather than reproduces.
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -2091,8 +2551,17 @@ export default function App() {
     setFurthest(0);
     setView("start");
   };
+  const signOut = () => setView("start");
   const props = useMemo(
-    () => ({ draft, update, next, back, jump: (n: number) => go(n) }),
+    () => ({
+      draft,
+      update,
+      next,
+      back,
+      jump: (n: number) => go(n),
+      exit: saveExit,
+      services: signOut,
+    }),
     [draft, current],
   );
 
@@ -2123,7 +2592,7 @@ export default function App() {
           current={current}
           resume={() => go(current)}
           documents={() => go(5)}
-          restart={restart}
+          signOut={signOut}
         />
         <Toaster />
       </>
@@ -2165,8 +2634,9 @@ export default function App() {
         saveState={saveState}
         onStep={(n) => go(n)}
         dashboard={() => setView("dashboard")}
-        documents={() => go(5)}
+        draft={draft}
         saveExit={saveExit}
+        signOut={signOut}
       >
         {content}
       </ApplicationShell>
