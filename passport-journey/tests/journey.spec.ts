@@ -89,3 +89,22 @@ test("mobile exposes application navigation in a drawer", async ({ page }) => {
     await expect(page.getByRole("button", { name })).toBeVisible()
   }
 })
+
+test("the rail opens the document library as a full page beside it", async ({ page }) => {
+  await page.getByRole("button", { name: /my first passport/i }).click()
+  await page.getByRole("button", { name: /continue with mock sign-in/i }).click()
+  const rail = page.locator(".app-rail")
+  await rail.getByRole("button", { name: "Documents" }).click()
+  await expect(page.getByRole("heading", { name: "Every document this journey involves." })).toBeVisible()
+  // The point of the feedback: a page next to the rail, not a dialog over it.
+  await expect(page.locator("[role='dialog']")).toHaveCount(0)
+  await expect(rail).toBeVisible()
+  await expect(page.locator(".doc-library-page")).toBeVisible()
+  await expect(page.locator(".doc-library-item")).toHaveCount(3)
+  await expect(page.locator(".doc-library-item").first()).toContainText("Stands behind")
+  await expect(page.getByText("Which specific documents count")).toBeVisible()
+  await expect(page.locator(".doc-library-aside")).toContainText("official accepted-document lists decide that")
+  // The library is reference; the stage it points at is where a document is decided.
+  await page.getByRole("button", { name: "Open Personal & history", exact: true }).click()
+  await expect(page.getByRole("heading", { name: "Personal & history" })).toBeVisible()
+})

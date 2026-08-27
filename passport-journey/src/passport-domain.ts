@@ -24,7 +24,7 @@ export type StepId =
 
 export type EvidenceState = "ready" | "attention" | "review"
 export type SaveState = "saving" | "saved" | "error"
-export type View = "start" | "signin" | "application" | "dashboard"
+export type View = "start" | "signin" | "application" | "dashboard" | "documents"
 export type PaymentState = "idle" | "processing" | "failed" | "paid"
 
 export interface JourneyStep {
@@ -503,3 +503,36 @@ export const sampleApplications: ApplicationRecord[] = [
     nextAction: "No action remains in this mock record",
   },
 ].map((record) => ({ ...record, live: false })) as ApplicationRecord[]
+
+/* Which stage each proof stands behind. The document decision itself is always
+   made on the Documents stage; this maps a proof to the answer it supports,
+   which is what the document library exists to show. */
+export const documentSupports: Record<string, number> = {
+  birth: 0,
+  address: 3,
+  category: 4,
+}
+
+/* The four routes a document can take. The same four apply to every proof, so
+   the wording on a document row means the same thing wherever it appears. */
+export const documentSourceReference = [
+  {
+    title: "Shared through DigiLocker",
+    detail:
+      "Provided digitally in this mock journey. Digital sharing is shown separately from what still has to be produced in person.",
+  },
+  {
+    title: "Uploaded to this application",
+    detail:
+      "Attached here. This prototype records only that you attached something \u2014 no file is sent anywhere.",
+  },
+  {
+    title: "Original carried to the appointment",
+    detail: "Not shared digitally, so the document itself has to be with you.",
+  },
+  {
+    title: "Not decided yet",
+    detail:
+      "Every proof needs one of the routes above before the declaration stage will let you through.",
+  },
+]

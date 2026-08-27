@@ -1969,3 +1969,130 @@ svg {
     grid-template-columns: 1fr;
   }
 }
+
+/* Document library — a reference page next to the rail, not a dialog. The
+   proofs get the reading column; the routes and the authority notice stay
+   beside them so neither is something you have to scroll back for. */
+.doc-library-page {
+  display: grid;
+  gap: 1.5rem;
+}
+.doc-library-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  gap: 1.75rem;
+  align-items: start;
+}
+.doc-library-aside {
+  display: grid;
+  gap: 1.25rem;
+  position: sticky;
+  top: 1.5rem;
+}
+.doc-library-section {
+  padding: 1.5rem 1.75rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+}
+.doc-library-section .section-heading {
+  margin-bottom: 0.5rem;
+}
+.doc-library-lead {
+  margin: 0 0 0.85rem;
+  color: var(--muted-ink);
+  font-size: 0.85rem;
+}
+.doc-library-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem;
+  padding: 1.15rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.doc-library-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+.doc-library-item > svg {
+  margin-top: 0.2rem;
+}
+.doc-library-item > div {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+.doc-library-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  width: 100%;
+}
+.doc-library-head strong {
+  color: var(--civic-navy);
+  font-size: 1.05rem;
+}
+.doc-library-item p {
+  margin: 0;
+  color: var(--muted-ink);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+/* Label-above-value, so a row stays readable when the value wraps. */
+.doc-library-item dl,
+.doc-library-routes {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.15rem 0 0;
+  width: 100%;
+}
+.doc-library-item dl {
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  padding: 0.85rem 0 0;
+  border-top: 1px solid var(--line);
+}
+.doc-library-item dt,
+.doc-library-routes dt {
+  color: var(--muted-ink);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.doc-library-item dd,
+.doc-library-routes dd {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.doc-library-routes dd {
+  color: var(--muted-ink);
+}
+.doc-library-routes dt {
+  color: var(--civic-navy);
+  font-size: 0.8rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+@media (max-width: 1050px) {
+  .doc-library-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .doc-library-aside {
+    position: static;
+  }
+}
+@media (max-width: 760px) {
+  .doc-library-section {
+    padding: 1.15rem 1.1rem;
+  }
+  .doc-library-head {
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+  .doc-library-item dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

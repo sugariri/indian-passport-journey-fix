@@ -98,6 +98,8 @@ import {
   chapterRanges,
   defaultDraft,
   documentRequirements,
+  documentSourceReference,
+  documentSupports,
   formatBirthDate,
   liveApplication,
   nameFormatNotes,
@@ -221,7 +223,15 @@ function RadioCards({
 }: {
   value: string;
   onChange: (value: string) => void;
-  options: { value: string; title: string; detail?: string }[];
+  options: {
+    value: string;
+    title: string;
+    detail?: string;
+    /* Ritika asked of these cards: "are these actual options or we created?".
+       Absence of the flag is not a claim that an option is official - it only
+       means we are not asserting either way. */
+    ours?: boolean;
+  }[];
   name: string;
 }) {
   return (
@@ -241,6 +251,9 @@ function RadioCards({
           <span>
             <strong>{option.title}</strong>
             {option.detail && <small>{option.detail}</small>}
+            {option.ours && (
+              <em className="option-origin">Added by this prototype</em>
+            )}
           </span>
         </Label>
       ))}
@@ -424,38 +437,44 @@ function StartScreen({
         <section className="prepare-section">
           <div>
             <span className="eyebrow">Before you start</span>
-            <h2>Know what the journey asks of you.</h2>
+            <h2>Three things to check first.</h2>
             <p>
-              Preparation appears before commitment: expected information, draft
-              saving, evidence checks, and indicative appointment availability.
+              Confirm these before you begin, so nothing stops you halfway
+              through.
             </p>
           </div>
-          <div className="prepare-grid">
-            <article>
-              <FileCheck2 />
-              <b>Prepare evidence</b>
-              <p>
-                See why each document is needed and whether it was digitally
-                shared.
-              </p>
-            </article>
-            <article>
-              <Store />
-              <b>Pause safely</b>
-              <p>
-                Your synthetic draft saves as you go and resumes at the last
-                stage.
-              </p>
-            </article>
-            <article>
-              <CalendarDays />
-              <b>Plan the visit</b>
-              <p>
-                Explore indicative centre availability before mock submission
-                and payment.
-              </p>
-            </article>
-          </div>
+          <ol className="prepare-steps">
+            <li>
+              <span className="prepare-step-n">1</span>
+              <div>
+                <b>Check what you need to show</b>
+                <p>
+                  Every document says why it is needed and whether it was
+                  shared digitally.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span className="prepare-step-n">2</span>
+              <div>
+                <b>Check you can stop and return</b>
+                <p>
+                  The synthetic draft saves as you go and reopens at the stage
+                  you left.
+                </p>
+              </div>
+            </li>
+            <li>
+              <span className="prepare-step-n">3</span>
+              <div>
+                <b>Check a visit you could make</b>
+                <p>
+                  Indicative centre availability is shown before any mock
+                  submission or payment.
+                </p>
+              </div>
+            </li>
+          </ol>
         </section>
         <section className="special-services" id="other">
           <div>
@@ -521,26 +540,39 @@ function StartScreen({
   );
 }
 
+/* The header's "Sign in" and the route card's "start an application" both
+   land on this same gateway, but they are not the same errand: one returns to
+   work already in progress, the other begins it. The gateway is told which so
+   it can resolve to the right place afterwards. */
+type SignInIntent = "begin" | "resume";
+
 function SignInScreen({
+  intent,
   proceed,
   back,
 }: {
+  intent: SignInIntent;
   proceed: () => void;
   back: () => void;
 }) {
+  const resuming = intent === "resume";
   return (
     <div className="gateway-page">
+      {/* A Badge reading "Independent prototype" used to sit here, directly
+          above a notice bar that opens with the same two words. */}
       <header className="gateway-header">
         <Brand />
-        <Badge variant="outline">Independent prototype</Badge>
       </header>
       <main className="gateway-main">
         <section className="gateway-context">
-          <span className="eyebrow">Selected service</span>
+          <span className="eyebrow">
+            {resuming ? "Saved application" : "Selected service"}
+          </span>
           <h1>First ordinary passport</h1>
           <p>
-            Your route is ready. Sign in or create an account to start a draft
-            that can be resumed later.
+            {resuming
+              ? "Sign in to reopen the draft you already started. It resumes at the stage you left."
+              : "Your route is ready. Sign in or create an account to start a draft that can be resumed later."}
           </p>
           <ul>
             <li>
@@ -789,10 +821,10 @@ function Rail({
     {
       id: "documents",
       label: "Documents",
-      hint: "Checklist and digital-sharing status",
+      hint: "Every proof, what it stands behind, and where it is decided",
       icon: Store,
       onClick: documents,
-      active: inApplication && current === 5,
+      active: view === "documents",
     },
     {
       id: "appointment",
@@ -983,6 +1015,9 @@ function ApplicationShell({
     localStorage.setItem(RAIL_KEY, collapsed ? "collapsed" : "expanded");
   }, [collapsed]);
   const inApplication = view === "application";
+  /* The document library is reference for an application, not a stage in it:
+     it keeps the application's header controls, but not the stage track. */
+  const inJourney = inApplication || view === "documents";
   const closeAnd = (action: () => void) => () => {
     setMenuOpen(false);
     action();
@@ -1017,6 +1052,16 @@ function ApplicationShell({
                 onStep={onStep}
                 dashboard={dashboard}
               />
+            ) : view === "documents" ? (
+              <nav className="stack-trail" aria-label="You are here">
+                <button onClick={dashboard}>My applications</button>
+                <ChevronRight aria-hidden="true" />
+                <button onClick={() => onStep(current)}>
+                  {steps[current].short}
+                </button>
+                <ChevronRight aria-hidden="true" />
+                <b aria-current="page">Document library</b>
+              </nav>
             ) : (
               <nav className="stack-trail" aria-label="You are here">
                 <b aria-current="page">My applications</b>
@@ -1024,7 +1069,7 @@ function ApplicationShell({
               </nav>
             )}
             <div className="header-state">
-              {inApplication ? (
+              {inJourney ? (
                 <>
                   <div
                     className={
@@ -1404,8 +1449,7 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
           kind="information"
           title="Which situation applies to you?"
         >
-          This is asked before the name fields, because the answer decides which
-          fields the official form actually requires.
+          Your answer decides which name fields the official form requires.
         </SectionHeading>
         <RadioCards
           name="Family situation"
@@ -1428,6 +1472,7 @@ function FamilyStep({ draft, update, next, back }: StepProps) {
               value: "help",
               title: "I need help answering",
               detail: "Single-parent, adoption or other situations.",
+              ours: true,
             },
           ]}
         />
@@ -2306,6 +2351,135 @@ function StageCell({ record }: { record: ApplicationRecord }) {
   );
 }
 
+/*
+  The rail's Documents entry opens this page, not the Documents stage. They
+  answer different questions: the stage asks "where does each document come
+  from for this application", the library answers "what documents does this
+  journey involve at all, and what does each one stand behind". Reference you
+  read alongside your answers, which is why it takes the full width next to the
+  rail instead of a dialog that covers them.
+
+  What it deliberately does not contain: the accepted-document lists. The
+  prototype does not reproduce those anywhere, and a library is exactly where
+  inventing them would look most authoritative. A page reads as more
+  authoritative than a dialog did, so the pointer to the official lists is a
+  standing part of the layout rather than a closing footnote.
+*/
+function DocumentLibraryView({
+  draft,
+  openStage,
+}: {
+  draft: ApplicationDraft;
+  openStage: (n: number) => void;
+}) {
+  const docs = documentRequirements(draft);
+  const outstanding = docs.filter((doc) => doc.state !== "ready").length;
+  return (
+    <div className="doc-library-page">
+      <div className="applications-heading">
+        <div>
+          <span className="eyebrow">Document library</span>
+          <h1>Every document this journey involves.</h1>
+          <p>
+            {docs.length} proofs, what each one stands behind, and where each is
+            decided.{" "}
+            {outstanding === 0
+              ? "All of them have a preparation status."
+              : `${outstanding} of ${docs.length} still needs a decision.`}
+          </p>
+        </div>
+        <Button onClick={() => openStage(5)}>
+          Open {steps[5].label}
+          <ArrowRight />
+        </Button>
+      </div>
+      <div className="doc-library-columns">
+        <section className="doc-library-section">
+          <SectionHeading kind="evidence" title="What you are asked to support">
+            Each proof stands behind an answer you have already given. The
+            document itself is decided on {steps[5].label}.
+          </SectionHeading>
+          {docs.map((doc) => {
+            const supports = documentSupports[doc.id] ?? 5;
+            return (
+              <article className="doc-library-item" key={doc.id}>
+                <StateIcon state={doc.state} />
+                <div>
+                  <div className="doc-library-head">
+                    <strong>{doc.title}</strong>
+                    <Badge
+                      variant={
+                        doc.digitalStatus === "Shared through DigiLocker"
+                          ? "default"
+                          : "outline"
+                      }
+                    >
+                      {doc.digitalStatus}
+                    </Badge>
+                  </div>
+                  <p>{doc.purpose}</p>
+                  <dl>
+                    <div>
+                      <dt>Stands behind</dt>
+                      <dd>{steps[supports].label}</dd>
+                    </div>
+                    <div>
+                      <dt>Decided on</dt>
+                      <dd>{steps[5].label}</dd>
+                    </div>
+                    <div>
+                      <dt>At the appointment</dt>
+                      <dd>{doc.appointmentAction}</dd>
+                    </div>
+                  </dl>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openStage(supports)}
+                  >
+                    Open {steps[supports].label}
+                    <ChevronRight />
+                  </Button>
+                </div>
+              </article>
+            );
+          })}
+        </section>
+        <aside className="doc-library-aside">
+          <section className="doc-library-section">
+            <SectionHeading
+              kind="information"
+              title="How a document can be provided"
+            >
+              The same four routes apply to every proof, so the wording on a
+              document row means the same thing everywhere.
+            </SectionHeading>
+            <dl className="doc-library-routes">
+              {documentSourceReference.map((route) => (
+                <div key={route.title}>
+                  <dt>{route.title}</dt>
+                  <dd>{route.detail}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+          <Alert>
+            <ShieldCheck />
+            <AlertTitle>Which specific documents count</AlertTitle>
+            <AlertDescription>
+              The official accepted-document lists decide that, and they are the
+              authority. This prototype points at them rather than reproducing
+              them, because reproducing them wrongly would be worse than not
+              carrying them here at all. Check the official list for each proof
+              before your appointment.
+            </AlertDescription>
+          </Alert>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
 function ApplicationsView({
   draft,
   current,
@@ -2545,6 +2719,7 @@ function ApplicationsView({
 export default function App() {
   const { draft, setDraft, saveState } = useDraft();
   const [view, setView] = useState<View>("start");
+  const [signInIntent, setSignInIntent] = useState<SignInIntent>("begin");
   const [current, setCurrent] = useState(() =>
     Number(localStorage.getItem(PROGRESS_KEY) || 0),
   );
@@ -2599,8 +2774,14 @@ export default function App() {
     return (
       <>
         <StartScreen
-          begin={() => setView("signin")}
-          resume={() => setView("dashboard")}
+          begin={() => {
+            setSignInIntent("begin");
+            setView("signin");
+          }}
+          resume={() => {
+            setSignInIntent("resume");
+            setView("signin");
+          }}
         />
         <Toaster />
       </>
@@ -2609,14 +2790,19 @@ export default function App() {
     return (
       <>
         <SignInScreen
-          proceed={() => go(current)}
+          intent={signInIntent}
+          proceed={() =>
+            signInIntent === "resume" ? setView("dashboard") : go(current)
+          }
           back={() => setView("start")}
         />
         <Toaster />
       </>
     );
   let content: ReactNode;
-  if (view === "dashboard") {
+  if (view === "documents") {
+    content = <DocumentLibraryView draft={draft} openStage={(n) => go(n)} />;
+  } else if (view === "dashboard") {
     content = (
       <ApplicationsView
         draft={draft}
@@ -2670,7 +2856,7 @@ export default function App() {
         applicant={applicant}
         onStep={(n) => go(n)}
         dashboard={() => setView("dashboard")}
-        documents={() => go(5)}
+        documents={() => setView("documents")}
         saveExit={saveExit}
         signOut={restart}
       >
