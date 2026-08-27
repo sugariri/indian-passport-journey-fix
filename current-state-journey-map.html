@@ -1,0 +1,1009 @@
+<title>Passport Seva Current State</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,600;1,6..72,400&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+  :root {
+    --paper:      #E9EAEC;
+    --surface:    #F5F6F7;
+    --surface-2:  #DFE2E6;
+    --ink:        #161C2B;
+    --ink-2:      #454E63;
+    --ink-3:      #6E778C;
+    --rule:       #C6CAD2;
+    --rule-soft:  #D6D9DF;
+    --navy:       #22315C;
+    --navy-soft:  #DCE1EE;
+    --gold:       #8A6413;
+
+    --blocks:     #96261F;
+    --blocks-bg:  #F2DEDC;
+    --risks:      #8A5A12;
+    --risks-bg:   #F1E5CF;
+    --drags:      #3F6350;
+    --drags-bg:   #DDE7E0;
+
+    --step:  0.35rem;
+    --maxw:  1180px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #111520;
+      --surface:    #181D2B;
+      --surface-2:  #212837;
+      --ink:        #DFE2E8;
+      --ink-2:      #A7AEBF;
+      --ink-3:      #7E869A;
+      --rule:       #2E3547;
+      --rule-soft:  #262D3D;
+      --navy:       #8FA5D9;
+      --navy-soft:  #232B44;
+      --gold:       #D6A64A;
+
+      --blocks:     #E8837A;
+      --blocks-bg:  #35201E;
+      --risks:      #DDA757;
+      --risks-bg:   #322718;
+      --drags:      #8DBBA0;
+      --drags-bg:   #1C2A22;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #111520;
+    --surface:    #181D2B;
+    --surface-2:  #212837;
+    --ink:        #DFE2E8;
+    --ink-2:      #A7AEBF;
+    --ink-3:      #7E869A;
+    --rule:       #2E3547;
+    --rule-soft:  #262D3D;
+    --navy:       #8FA5D9;
+    --navy-soft:  #232B44;
+    --gold:       #D6A64A;
+
+    --blocks:     #E8837A;
+    --blocks-bg:  #35201E;
+    --risks:      #DDA757;
+    --risks-bg:   #322718;
+    --drags:      #8DBBA0;
+    --drags-bg:   #1C2A22;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: var(--maxw);
+    margin: 0 auto;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(1rem, 4vw, 3rem) 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(3rem, 6vw, 5rem);
+  }
+
+  /* ---------- type ---------- */
+
+  h1, h2, h3 {
+    font-family: Newsreader, ui-serif, Georgia, "Times New Roman", serif;
+    font-weight: 600;
+    text-wrap: balance;
+    margin: 0;
+    letter-spacing: -0.012em;
+  }
+  h1 { font-size: clamp(2.1rem, 5vw, 3.1rem); line-height: 1.08; }
+  h2 { font-size: clamp(1.5rem, 3vw, 1.95rem); line-height: 1.16; }
+  h3 { font-size: 1.08rem; line-height: 1.3; }
+
+  p { margin: 0; max-width: 66ch; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.685rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .lede {
+    font-family: Newsreader, ui-serif, Georgia, serif;
+    font-size: clamp(1.12rem, 2.2vw, 1.32rem);
+    line-height: 1.48;
+    color: var(--ink-2);
+    max-width: 60ch;
+  }
+
+  .mono {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  a { color: var(--navy); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* ---------- header ---------- */
+
+  header.masthead {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-bottom: 2.25rem;
+    border-bottom: 3px double var(--rule);
+  }
+
+  .thesis {
+    font-family: Newsreader, ui-serif, Georgia, serif;
+    font-size: clamp(1.2rem, 2.6vw, 1.55rem);
+    line-height: 1.42;
+    padding: 1.35rem 0 1.35rem 1.4rem;
+    border-left: 3px solid var(--gold);
+    max-width: 56ch;
+  }
+
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+    gap: 1.5rem 2rem;
+    border-top: 1px solid var(--rule-soft);
+    padding-top: 1.5rem;
+  }
+  .fact { display: flex; flex-direction: column; gap: 0.3rem; }
+  .fact dt {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .fact dd { margin: 0; font-size: 0.94rem; line-height: 1.42; color: var(--ink); }
+
+  /* ---------- section ---------- */
+
+  section { display: flex; flex-direction: column; gap: 1.6rem; }
+  .sec-head { display: flex; flex-direction: column; gap: 0.7rem; }
+
+  /* ---------- root problem key ---------- */
+
+  .roots { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--rule); }
+
+  .root {
+    display: grid;
+    grid-template-columns: 3.1rem 1fr auto;
+    gap: 0 1.35rem;
+    align-items: start;
+    padding: 1.4rem 0;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+
+  .root-code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--navy);
+    background: var(--navy-soft);
+    border: 1px solid var(--navy);
+    border-radius: 2px;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: grid;
+    place-items: center;
+  }
+
+  .root-body { display: flex; flex-direction: column; gap: 0.5rem; }
+  .root-body h3 { font-size: 1.14rem; }
+  .root-body p { font-size: 0.925rem; color: var(--ink-2); max-width: 62ch; }
+  .root-move {
+    font-size: 0.875rem;
+    color: var(--ink);
+  }
+  .root-move b {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+
+  .root-count {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding-top: 0.15rem;
+  }
+  .root-count span:first-child { font-size: 1.5rem; font-weight: 600; line-height: 1; }
+  .root-count span:last-child {
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  /* ---------- severity key ---------- */
+
+  .sev-key {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(228px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .sev-key > div {
+    background: var(--surface);
+    padding: 1.05rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .sev-key p { font-size: 0.865rem; color: var(--ink-2); max-width: none; }
+
+  .chip {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.655rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.24rem 0.5rem;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .c-blocks { color: var(--blocks); background: var(--blocks-bg); }
+  .c-risks  { color: var(--risks);  background: var(--risks-bg); }
+  .c-drags  { color: var(--drags);  background: var(--drags-bg); }
+
+  /* ---------- the map ---------- */
+
+  .scroller {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+  }
+
+  table.map {
+    border-collapse: collapse;
+    min-width: 1500px;
+    width: 100%;
+    font-size: 0.845rem;
+    line-height: 1.5;
+    background: var(--surface);
+  }
+
+  table.map th, table.map td {
+    text-align: left;
+    vertical-align: top;
+    padding: 0.85rem 0.9rem;
+    border-bottom: 1px solid var(--rule-soft);
+    border-right: 1px solid var(--rule-soft);
+  }
+
+  table.map thead th {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: var(--surface-2);
+    color: var(--ink);
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.635rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    line-height: 1.35;
+    border-bottom: 2px solid var(--navy);
+  }
+  table.map thead th .n {
+    display: block;
+    color: var(--ink-3);
+    font-weight: 400;
+    margin-bottom: 0.2rem;
+  }
+
+  /* sticky step column */
+  table.map .col-step {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--surface-2);
+    border-right: 2px solid var(--rule);
+    width: 214px;
+    min-width: 214px;
+  }
+  table.map thead .col-step { z-index: 4; }
+
+  .stage-row td {
+    background: var(--navy-soft);
+    border-bottom: 1px solid var(--navy);
+    border-top: 1px solid var(--navy);
+    padding: 0.6rem 0.9rem;
+  }
+  .stage-row .stage-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.685rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--navy);
+    display: flex;
+    gap: 0.8rem;
+    align-items: baseline;
+  }
+  .stage-row .stage-label em {
+    font-style: normal;
+    font-family: "Public Sans", sans-serif;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 400;
+    font-size: 0.82rem;
+    color: var(--ink-2);
+  }
+
+  .step-id {
+    font-family: "IBM Plex Mono", monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--ink-3);
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+  .step-name { font-weight: 600; color: var(--ink); display: block; }
+
+  .codes { display: flex; gap: 0.22rem; margin-top: 0.5rem; flex-wrap: wrap; }
+  .code {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--navy);
+    background: var(--navy-soft);
+    border: 1px solid var(--navy);
+    border-radius: 2px;
+    width: 1.32rem;
+    height: 1.32rem;
+    display: grid;
+    place-items: center;
+  }
+  .code.none {
+    color: var(--ink-3);
+    border-color: var(--rule);
+    background: transparent;
+    width: auto;
+    padding: 0 0.35rem;
+    letter-spacing: 0.06em;
+  }
+
+  td.c-sev, td.c-ev, td.c-scope { width: 118px; min-width: 118px; }
+  td.c-ev  { font-size: 0.8rem; }
+  .evtag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.635rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+  .evnote { font-size: 0.79rem; color: var(--ink-3); line-height: 1.42; }
+
+  .scope {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.635rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    display: inline-block;
+    padding: 0.24rem 0.45rem;
+    border-radius: 2px;
+    border: 1px solid var(--rule);
+    color: var(--ink-2);
+    background: transparent;
+    white-space: nowrap;
+  }
+  .scope.fix    { color: var(--navy); border-color: var(--navy); background: var(--navy-soft); }
+  .scope.part   { color: var(--ink-2); border-color: var(--rule); }
+  .scope.leave  { color: var(--ink-3); border-style: dashed; }
+  .scope-why { display: block; margin-top: 0.4rem; font-size: 0.775rem; color: var(--ink-3); line-height: 1.42; }
+
+  td em.q {
+    font-style: italic;
+    font-family: Newsreader, ui-serif, Georgia, serif;
+    font-size: 0.95em;
+    color: var(--ink);
+  }
+  td .verbatim {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.775rem;
+    color: var(--ink-2);
+    display: block;
+    margin-top: 0.35rem;
+    padding-left: 0.55rem;
+    border-left: 2px solid var(--rule);
+    line-height: 1.45;
+  }
+  td ul { margin: 0.25rem 0 0; padding-left: 1.05rem; }
+  td li { margin-bottom: 0.18rem; }
+
+  .peak td { background: color-mix(in srgb, var(--risks-bg) 42%, var(--surface)); }
+
+  /* ---------- scope split ---------- */
+
+  .split {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .split > div {
+    background: var(--surface);
+    padding: 1.5rem 1.55rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .split h3 { display: flex; align-items: center; gap: 0.6rem; }
+  .split ol, .split ul { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .split li { font-size: 0.9rem; line-height: 1.5; }
+  .split li b { font-weight: 600; }
+  .split li span { color: var(--ink-3); }
+
+  /* ---------- verdict ---------- */
+
+  .verdict {
+    border: 1px solid var(--navy);
+    background: var(--navy-soft);
+    padding: clamp(1.6rem, 3.5vw, 2.4rem);
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+  .verdict p { color: var(--ink); max-width: 68ch; }
+  .verdict .big {
+    font-family: Newsreader, ui-serif, Georgia, serif;
+    font-size: clamp(1.2rem, 2.6vw, 1.5rem);
+    line-height: 1.4;
+  }
+
+  .openq {
+    border-top: 1px solid var(--rule);
+    padding-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .openq ul { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.55rem; }
+  .openq li { font-size: 0.9rem; color: var(--ink-2); }
+
+  footer {
+    border-top: 1px solid var(--rule);
+    padding-top: 1.5rem;
+    font-size: 0.815rem;
+    color: var(--ink-3);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .hint {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  @media (max-width: 640px) {
+    .root { grid-template-columns: 2.7rem 1fr; }
+    .root-count { grid-column: 2; text-align: left; flex-direction: row; align-items: baseline; gap: 0.4rem; }
+    .root-count span:first-child { font-size: 1.05rem; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <span class="eyebrow">Current-state journey map &middot; Fresh Passport, Start &rarr; Appointment</span>
+    <h1>Passport Seva, step by step</h1>
+    <p class="lede">Twenty-three actual steps from login to a booked appointment, read against what the applicant is trying to do. Built from the 22 August 2026 audit of the live portal, before any redesign.</p>
+
+    <div class="thesis">Passport Seva asks citizens to supply what the system should supply &mdash; its vocabulary, its arithmetic, its verification and its sequencing &mdash; and then gives them no way to know whether they got it right.</div>
+
+    <dl class="facts">
+      <div class="fact">
+        <dt>Applicant</dt>
+        <dd>First passport, 26&ndash;30, working professional. Comfortable with UPI, DigiLocker, online banking. Has never met this bureaucracy.</dd>
+      </div>
+      <div class="fact">
+        <dt>Their mental model</dt>
+        <dd><em class="q">I want a passport. Tell me what to do.</em></dd>
+      </div>
+      <div class="fact">
+        <dt>The site&rsquo;s mental model</dt>
+        <dd><em class="q">Here are the departments, categories, forms and rules. Work out which apply to you.</em></dd>
+      </div>
+      <div class="fact">
+        <dt>Scale of the flow</dt>
+        <dd><span class="mono">69.26%</span> of all grievances received by the Ministry of External Affairs are filed against &ldquo;Normal Fresh/Re-issue Passport Application&rdquo; &mdash; PIB CPGRAMS report, Jan&ndash;Dec 2024. Share of complaints, not a failure rate.</dd>
+      </div>
+      <div class="fact">
+        <dt>Footer on every screen</dt>
+        <dd class="mono">Last Updated On 10. 04. 2023</dd>
+      </div>
+    </dl>
+  </header>
+
+  <!-- ============ ROOT PROBLEMS ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Five roots</span>
+      <h2>What the citizen is made to supply</h2>
+      <p>Every observation across the twenty-three steps resolves into one of five. They are separate roots, not restatements, because each needs a different design move. The count on the right is how many steps each one touches.</p>
+    </div>
+
+    <div class="roots">
+
+      <div class="root">
+        <span class="root-code" aria-hidden="true">V</span>
+        <div class="root-body">
+          <h3>Vocabulary they don&rsquo;t have</h3>
+          <p>The government&rsquo;s internal taxonomy is exposed as a set of citizen decisions. ECR and ECNR, Tatkaal, Fresh versus Re-issue versus Identity Certificate, 36 versus 60 pages, Annexures A, G and H, Employment Type, the State &rarr; Passport Office &rarr; PSK/POPSK hierarchy. The applicant is asked to self-classify into categories they have never encountered, using words the screen never defines.</p>
+          <p class="root-move"><b>The move</b>Ask about circumstances. Derive the category. Show the applicant which category they landed in and why.</p>
+        </div>
+        <div class="root-count"><span>10</span><span>steps</span></div>
+      </div>
+
+      <div class="root">
+        <span class="root-code" aria-hidden="true">L</span>
+        <div class="root-body">
+          <h3>Labour the system could do itself</h3>
+          <p>Fields the portal already holds, or could compute from a field on the same screen. ECR status follows from Educational Qualification, three inputs above it. Police Station, District and State follow from the PIN code. Name and date of birth sit inside the Aadhaar it collects and validates. The address is on the document the applicant will nominate eight steps later. All of it is typed by hand.</p>
+          <p class="root-move"><b>The move</b>Derive, then ask the applicant to confirm rather than to compose.</p>
+        </div>
+        <div class="root-count"><span>4</span><span>steps</span></div>
+      </div>
+
+      <div class="root">
+        <span class="root-code" aria-hidden="true">J</span>
+        <div class="root-body">
+          <h3>Judgment with no feedback</h3>
+          <p>Nothing the applicant decides is ever confirmed back to them. The address is never checked against the proof that is supposed to establish it. The ECR answer is never reconciled with the qualification already declared. Documents are named in a dropdown but never uploaded, matched or validated. There is no point at which the system says <em class="q">you are ready</em>. The first real feedback is a human being at a counter, weeks later, after payment.</p>
+          <p class="root-move"><b>The move</b>Check continuously, and put one honest readiness checkpoint before the applicant commits.</p>
+        </div>
+        <div class="root-count"><span>9</span><span>steps</span></div>
+      </div>
+
+      <div class="root">
+        <span class="root-code" aria-hidden="true">C</span>
+        <div class="root-body">
+          <h3>Commitment before the deciding information</h3>
+          <p>The Passport Office is chosen on the first screen and locked on save &mdash; a browser alert says so &mdash; while appointment availability for that office only becomes visible after submission and payment. The truth declaration is signed at step 08; the documents that would make it true are chosen at step 09. Payment happens before any verification of anything.</p>
+          <p class="root-move"><b>The move</b>Put the information before the decision. Keep reversible whatever does not need to be locked.</p>
+        </div>
+        <div class="root-count"><span>6</span><span>steps</span></div>
+      </div>
+
+      <div class="root">
+        <span class="root-code" aria-hidden="true">A</span>
+        <div class="root-body">
+          <h3>Attention the interface should be managing</h3>
+          <p>Mid-application, the screen is still trying to be four things at once: application workspace, portal dashboard, navigation hub and promotional surface. Quick Links, Home, and Logout hold the same visual weight as the form. The interface never communicates <em class="q">you are in the middle of something important</em>. The only root that is purely presentational &mdash; the cheapest to fix and the most immediately visible.</p>
+          <p class="root-move"><b>The move</b>When someone is completing an application, the screen becomes application-centric.</p>
+        </div>
+        <div class="root-count"><span>5</span><span>steps</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ SEVERITY KEY ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">How severity is graded</span>
+      <h2>Three ways a step can hurt</h2>
+      <p>Graded by what it costs the applicant, not by how broken the screen is.</p>
+    </div>
+    <div class="sev-key">
+      <div>
+        <span class="chip c-blocks">Blocks</span>
+        <p>You cannot get this right without leaving the site for outside help &mdash; a forum, an agent, a phone call, a relative who has done it before.</p>
+      </div>
+      <div>
+        <span class="chip c-risks">Risks</span>
+        <p>You can complete it and be wrong, and you will not find out until the counter. The silent failure mode.</p>
+      </div>
+      <div>
+        <span class="chip c-drags">Drags</span>
+        <p>Costs effort and confidence, but you can recover on your own without help.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ THE MAP ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">The map</span>
+      <h2>Twenty-three steps</h2>
+      <p>Shaded rows are where three or more roots converge. Evidence is tagged honestly: <span class="mono">AUDIT</span> is the 22 August screenshots, <span class="mono">COPY</span> is text quoted verbatim off the screen, <span class="mono">OFFICIAL</span> is a government source, <span class="mono">PRESS</span> is reporting, and <span class="mono">REASONED</span> means design inference with no external source behind it.</p>
+      <p class="hint">Scroll the table sideways &mdash; the step column stays put</p>
+    </div>
+
+    <div class="scroller" tabindex="0" role="region" aria-label="Current-state journey map, scrollable">
+      <table class="map">
+        <thead>
+          <tr>
+            <th class="col-step" scope="col"><span class="n">1</span>Step &amp; roots</th>
+            <th scope="col"><span class="n">2</span>What they&rsquo;re trying to do</th>
+            <th scope="col"><span class="n">3</span>What Passport Seva asks</th>
+            <th scope="col"><span class="n">4</span>What they have to understand</th>
+            <th scope="col"><span class="n">5</span>Where uncertainty starts</th>
+            <th scope="col" class="c-sev"><span class="n">6</span>Severity</th>
+            <th scope="col" class="c-ev"><span class="n">7</span>Evidence</th>
+            <th scope="col" class="c-scope"><span class="n">8</span>Scope</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- ===== STAGE A ===== -->
+          <tr class="stage-row"><td colspan="8"><span class="stage-label">Stage A &mdash; Getting in <em>Three screens before the applicant has done anything about a passport</em></span></td></tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">A / 01</span><span class="step-name">Log in</span><div class="codes"><span class="code none">none</span></div></td>
+            <td>Get back into my application.</td>
+            <td>Login ID, password, character-distorted captcha.</td>
+            <td>Nothing new.</td>
+            <td>None worth designing around.</td>
+            <td class="c-sev"><span class="chip c-drags">Drags</span></td>
+            <td class="c-ev"><span class="evtag">Audit</span></td>
+            <td class="c-scope"><span class="scope leave">Leave</span><span class="scope-why">Working as intended. Redesigning it teaches us nothing.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">A / 02</span><span class="step-name">&ldquo;Pending actions&rdquo; modal</span><div class="codes"><span class="code">A</span></div></td>
+            <td>Get to my application.</td>
+            <td>Dismiss a blocking dialog before seeing anything.<span class="verbatim">You have pending actions that needs your attention!</span></td>
+            <td>What counts as a &ldquo;pending action&rdquo;; whether it is theirs; whether it blocks them; whether they have already made a mistake.</td>
+            <td>An alarm fires before the applicant has seen a single thing. It sets a tone of having done something wrong.</td>
+            <td class="c-sev"><span class="chip c-drags">Drags</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Absorbed by the workspace &mdash; state belongs on the surface, not in a dialog.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">A / 03</span><span class="step-name">Home dashboard</span><div class="codes"><span class="code">A</span></div></td>
+            <td>Find where to begin.</td>
+            <td>Read tables of submitted applications, empty and near-duplicated, alongside a navigation rail and Quick Links.</td>
+            <td>Which table is theirs, how the tables differ, and that none of this is the starting point.</td>
+            <td>No single obvious place to start. The heaviest elements on the screen are the ones with nothing in them.</td>
+            <td class="c-sev"><span class="chip c-drags">Drags</span></td>
+            <td class="c-ev"><span class="evtag">Audit</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">First-run state should be the task, not an empty ledger.</span></td>
+          </tr>
+
+          <!-- ===== STAGE B ===== -->
+          <tr class="stage-row"><td colspan="8"><span class="stage-label">Stage B &mdash; Finding the right service <em>The applicant must translate their intent into the department&rsquo;s catalogue</em></span></td></tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">B / 04</span><span class="step-name">Services tiles</span><div class="codes"><span class="code">V</span><span class="code">A</span></div></td>
+            <td>Apply for my first passport.</td>
+            <td>Choose among Fresh&nbsp;/&nbsp;Re-issue, Police Clearance Certificate, Identity Certificate, Surrender Certificate, Background Verification for GEP, Doorstep&nbsp;/&nbsp;Official passport.</td>
+            <td>That five of the six are irrelevant to them. What an Identity Certificate is. That &ldquo;Fresh&rdquo; is the government&rsquo;s word for &ldquo;first&rdquo;. That a PCC is a separate thing they do not need.</td>
+            <td>Presented as six peers of equal weight. One serves the overwhelming majority of visitors; the catalogue does not say so.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit</span><span class="evnote">Volume weighting inferred, not measured.</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Entry by intent rather than by catalogue.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">B / 05</span><span class="step-name">Document Advisor sits in another section</span><div class="codes"><span class="code">J</span><span class="code">A</span></div></td>
+            <td>Find out what documents I need.</td>
+            <td>Leave the application path, find a separate tool, and describe your circumstances a second time.</td>
+            <td>That this tool exists at all. That its answer does not travel into the application.</td>
+            <td>The single most useful thing on the portal is off the path of the task it serves.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Official</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">The keystone. The rule engine already exists &mdash; move it into the flow.</span></td>
+          </tr>
+
+          <!-- ===== STAGE C ===== -->
+          <tr class="stage-row"><td colspan="8"><span class="stage-label">Stage C &mdash; Locking the location <em>The most consequential choice in the journey, made first and with nothing to go on</em></span></td></tr>
+
+          <tr class="peak">
+            <td class="col-step"><span class="step-id">C / 06</span><span class="step-name">Select your Passport Office</span><div class="codes"><span class="code">V</span><span class="code">C</span></div></td>
+            <td>Start the application.</td>
+            <td>Pick a Passport Office from a mandatory dropdown, before entering a single personal detail.</td>
+            <td>The hierarchy State &rarr; Passport Office&nbsp;/&nbsp;RPO &rarr; PSK&nbsp;/&nbsp;POPSK. Which office governs their address. That this is where the file goes, not necessarily where they will sit for an appointment.</td>
+            <td>Immediate. The applicant cannot tell whether they are choosing a place to visit or an administrative jurisdiction &mdash; and either way they have no basis for choosing.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Official</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Derive from PIN and show the hierarchy explicitly.</span></td>
+          </tr>
+
+          <!-- ===== STAGE D ===== -->
+          <tr class="stage-row"><td colspan="8"><span class="stage-label">Stage D &mdash; The nine-step form <em>Field order inherited from the paper form it replaced</em></span></td></tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">D / 07</span><span class="step-name">Step 01 &middot; Passport Type</span><div class="codes"><span class="code">V</span><span class="code">J</span></div></td>
+            <td>Get an ordinary passport.</td>
+            <td>Fresh or Re-issue; Normal or Tatkaal; 36 or 60 pages &mdash; plus a long note about diplomatic and official passports.</td>
+            <td>Whether Tatkaal applies to them and what it costs. Whether 60 pages will ever matter. That the diplomatic paragraph is not addressed to them.</td>
+            <td>Page count is asked with no consequence stated. Tatkaal is offered with no eligibility check and no fee shown beside it.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">State the consequence at the point of choice.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">D / 08</span><span class="step-name">Step 02a &middot; Applicant details</span><div class="codes"><span class="code">V</span><span class="code">L</span></div></td>
+            <td>Enter who I am.</td>
+            <td>Given Name and Surname split per stated rules; aliases; previous names; place of birth in or outside India; village&nbsp;/&nbsp;town&nbsp;/&nbsp;city; state; district; marital status; basis of citizenship; PAN; Voter ID; employment type; whether a parent or spouse is a government servant.</td>
+            <td>The portal&rsquo;s name-splitting convention versus how the name appears on their documents. Why their father&rsquo;s employment is being asked at all &mdash; it silently routes fee category and annexure requirements.</td>
+            <td><em class="q">Does the name I just typed match my documents?</em> and <em class="q">why does the government care what my parents do?</em> Neither question is answered on the screen.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span></td>
+            <td class="c-scope"><span class="scope part">Partial</span><span class="scope-why">Explain why each field is asked. The splitting rule itself stays.</span></td>
+          </tr>
+
+          <tr class="peak">
+            <td class="col-step"><span class="step-id">D / 09</span><span class="step-name">Step 02b &middot; the ECR question</span><div class="codes"><span class="code">V</span><span class="code">L</span><span class="code">J</span></div></td>
+            <td>Answer a yes/no question honestly.</td>
+            <td>A single toggle.<span class="verbatim">Is applicant eligible for Non-ECR category?</span>Behind it, a modal listing qualifying conditions and Annexures.</td>
+            <td>What Emigration Check Required means. That &ldquo;eligible&rdquo; denotes a legal status, not a preference. The matriculation-and-above rule. That an ECR stamp changes what happens when they take a job abroad.</td>
+            <td>Total, and it is the sharpest instance of the whole pattern: the answer is already determined by <b>Educational Qualification &mdash; Graduate And Above</b>, three fields higher on the same screen. The system knows. It asks anyway, in a vocabulary the applicant does not have, about a consequence it does not name.</td>
+            <td class="c-sev"><span class="chip c-blocks">Blocks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy &middot; Official</span><span class="evnote">Both the field and the toggle are on the same screenshot.</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Flagship. Derive from qualification, name the consequence, let them override.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">D / 10</span><span class="step-name">Step 02c &middot; Aadhaar and consent</span><div class="codes"><span class="code">L</span></div></td>
+            <td>Link my Aadhaar and save myself some typing.</td>
+            <td>Aadhaar number plus a UIDAI consent declaration.</td>
+            <td>What the consent authorises. Why name and date of birth were typed by hand when Aadhaar carries both.</td>
+            <td>The applicant hands over the identity the portal validates against, and gets nothing back for it. Consent without benefit.</td>
+            <td class="c-sev"><span class="chip c-drags">Drags</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Make the consent buy something visible.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">D / 11</span><span class="step-name">Step 03 &middot; Family details</span><div class="codes"><span class="code">J</span></div></td>
+            <td>Enter my parents&rsquo; names.</td>
+            <td>Father&rsquo;s, mother&rsquo;s and legal guardian&rsquo;s given names and surnames, with a note that both parents are required.</td>
+            <td>That the spelling must match their parents&rsquo; documents, not family usage. How single-parent and guardian cases are handled.</td>
+            <td>Which spelling is authoritative, and which document is the source of truth for someone else&rsquo;s name.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span></td>
+            <td class="c-scope"><span class="scope part">Partial</span><span class="scope-why">Name the source document. Do not restructure the family model.</span></td>
+          </tr>
+
+          <tr class="peak">
+            <td class="col-step"><span class="step-id">D / 12</span><span class="step-name">Step 04 &middot; Address details</span><div class="codes"><span class="code">V</span><span class="code">L</span><span class="code">J</span></div></td>
+            <td>Give the address where I actually live.</td>
+            <td>House No. and Street Name in a 48-character field; village&nbsp;/&nbsp;town&nbsp;/&nbsp;city; PIN; state; district; <b>Police Station</b>; mobile; telephone; email; whether a permanent address exists; whether it is the same as the present one.</td>
+            <td>Which of their addresses counts as &ldquo;present&rdquo;. That this address drives police verification and physical delivery. The name of their police station. That whatever they type here should be provable by a document they will not nominate until step 09.</td>
+            <td>Peak. An Indian address does not fit in 48 characters. Nobody knows their police station by name &mdash; it follows from the PIN the applicant has just entered. And the field that decides whether the application survives is entered with no connection to the evidence for it. The question the applicant needs answered &mdash; <em class="q">does my document actually prove this address?</em> &mdash; is never asked, so it is never answered.</td>
+            <td class="c-sev"><span class="chip c-blocks">Blocks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span><span class="evnote">Consequence severity is reasoned. No official rejection statistics exist in indexed sources; agent-site claims were discarded.</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Flagship. Address confidence &mdash; derive from PIN, tie to the proof.</span></td>
+          </tr>
+
+          <tr class="peak">
+            <td class="col-step"><span class="step-id">D / 13</span><span class="step-name">Save &rarr; the lock alert</span><div class="codes"><span class="code">C</span></div></td>
+            <td>Save my progress and carry on.</td>
+            <td>Acknowledge a plain browser alert stating that the Passport Office cannot be changed once the form is saved.</td>
+            <td>That a choice made seven steps ago, with no information, is now permanent. That appointment availability for that office is still invisible.</td>
+            <td><em class="q">Should I go back?</em> &mdash; and there is nothing to go back to, because the deciding information does not exist anywhere on the site yet.</td>
+            <td class="c-sev"><span class="chip c-blocks">Blocks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Flagship. The clearest single instance of commitment before information.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">D / 14</span><span class="step-name">Step 05 &middot; Emergency contact</span><div class="codes"><span class="code none">none</span></div></td>
+            <td>Name someone the department can reach.</td>
+            <td>Name and address, mobile, telephone, email.</td>
+            <td>Whether this person is ever actually contacted.</td>
+            <td>Low. A conventional form, conventionally asked.</td>
+            <td class="c-sev"><span class="chip c-drags">Drags</span></td>
+            <td class="c-ev"><span class="evtag">Audit</span></td>
+            <td class="c-scope"><span class="scope leave">Leave</span><span class="scope-why">Not where the problem lives.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">D / 15</span><span class="step-name">Step 06 &middot; Previous passport</span><div class="codes"><span class="code">V</span><span class="code">A</span></div></td>
+            <td>Say that I have never had a passport.</td>
+            <td>Whether an Identity Certificate was held; whether previous passport details are available; File Number; Date of Applying; Name of the Passport Office where applied.</td>
+            <td>That as a first-time applicant almost none of this is theirs. What an Identity Certificate is. That a File Number is not the same as an ARN.</td>
+            <td>An entire screen of fields that do not apply, with no reassurance that leaving them blank is correct.</td>
+            <td class="c-sev"><span class="chip c-drags">Drags</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Collapses to nothing once the flow knows this is a first passport.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">D / 16</span><span class="step-name">Step 07 &middot; Other details</span><div class="codes"><span class="code">V</span></div></td>
+            <td>Confirm that none of this applies to me.</td>
+            <td>Roughly seven yes/no declarations: pending criminal proceedings, orders prohibiting departure, arrest warrants, a passport impounded or revoked, a passport previously refused.</td>
+            <td>Legal phrasing rather than everyday language. That &ldquo;no&rdquo; to all of it is the ordinary case. That a careless answer here is a false declaration.</td>
+            <td>Formal legal language with no plain-language gloss, on a screen where the honest answer is almost always the same.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span></td>
+            <td class="c-scope"><span class="scope part">Partial</span><span class="scope-why">Gloss it in plain language. The legal wording itself is not ours to rewrite.</span></td>
+          </tr>
+
+          <tr class="peak">
+            <td class="col-step"><span class="step-id">D / 17</span><span class="step-name">Step 08 &middot; Preview and declaration</span><div class="codes"><span class="code">C</span><span class="code">J</span></div></td>
+            <td>Check my details before committing.</td>
+            <td>Read a rendered bilingual passport data page, then tick a declaration.<span class="verbatim">I agree that the information and particulars are true and correct</span></td>
+            <td>That they are attesting to accuracy <b>before</b> they have chosen, or even seen, the documents that establish it &mdash; those come on the next screen.</td>
+            <td>The applicant is asked to swear to something they have no way to verify yet. The preview shows what they typed, not whether it is supportable.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Declaration comes after evidence, not before it.</span></td>
+          </tr>
+
+          <tr class="peak">
+            <td class="col-step"><span class="step-id">D / 18</span><span class="step-name">Step 09 &middot; Details Verification</span><div class="codes"><span class="code">V</span><span class="code">J</span></div></td>
+            <td>Find out what I need to bring to my appointment.</td>
+            <td>Select Proof of Birth, Proof of Present Residential Address and Proof of ECNR from three dropdowns, each with a &ldquo;more information&hellip;&rdquo; link. Read a red ATTENTION notice about being physically present at the address for delivery, and this banner:<span class="verbatim">The selected documents (not shared through DigiLocker) need to be submitted at PSK/Passport Office for verification.</span></td>
+            <td>Which of their actual documents satisfies each category. That the parenthetical is restrictive &mdash; it means <em>those documents which were not shared through DigiLocker</em> &mdash; and therefore that anything already in DigiLocker needs no original. Read as an aside, the same sentence means the opposite.</td>
+            <td>Peak, and it is the last screen before money changes hands. One ambiguous parenthetical carries the entire rule about what the applicant physically carries to a passport office. Nothing is uploaded, matched or validated &mdash; the applicant declares what they intend to bring and receives no confirmation of any kind. The screen is named &ldquo;Verification&rdquo; and verifies nothing.</td>
+            <td class="c-sev"><span class="chip c-blocks">Blocks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy &middot; Official</span><span class="evnote">The DigiLocker rule is per document; originals are not required for documents already shared.</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Flagship. Per-document status: digital, or original plus copy.</span></td>
+          </tr>
+
+          <!-- ===== STAGE E ===== -->
+          <tr class="stage-row"><td colspan="8"><span class="stage-label">Stage E &mdash; Submit, pay, book <em>The information needed at Stage C finally arrives &mdash; after the money</em></span></td></tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">E / 19</span><span class="step-name">Submit the application</span><div class="codes"><span class="code">J</span></div></td>
+            <td>Send it in.</td>
+            <td>Confirm submission.</td>
+            <td>What is now fixed and what can still be edited.</td>
+            <td>No summary of what was decided, no statement of readiness, no account of what happens next.</td>
+            <td class="c-sev"><span class="chip c-drags">Drags</span></td>
+            <td class="c-ev"><span class="evtag">Audit</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Where the readiness checkpoint belongs.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">E / 20</span><span class="step-name">Pay and Schedule Appointment</span><div class="codes"><span class="code">C</span></div></td>
+            <td>Book a slot I can actually make.</td>
+            <td>A single action that couples payment with scheduling.</td>
+            <td>That paying and booking are one act, and that the fee is committed before any slot has been seen.</td>
+            <td>The applicant is asked to pay for an appointment whose availability they have not yet been shown.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Show availability before asking for the fee.</span></td>
+          </tr>
+
+          <tr class="peak">
+            <td class="col-step"><span class="step-id">E / 21</span><span class="step-name">Appointment Availability</span><div class="codes"><span class="code">V</span><span class="code">C</span><span class="code">J</span></div></td>
+            <td>Find a date I can get to.</td>
+            <td>Choose from a table of centres reading &ldquo;Earliest available for&rdquo; dates spanning <span class="mono">24/08/2026</span> to <span class="mono">05/10/2026</span>, or change location through a city dropdown.<span class="verbatim">We found following PSKs near your location. Select suitable slot from the list below or change location:</span></td>
+            <td>That the six-week spread is a consequence of the office locked at step 06. The daily quota of 45 appointments per centre. That choosing &ldquo;Dehradun&rdquo; resolves to PSK Dehradun, RPO Dehradun, POPSK Almora and POPSK Kathgodam &mdash; the same hierarchy from Stage C, still unexplained, now with hundreds of kilometres between the options.</td>
+            <td>Peak, and structurally the worst moment in the journey: the information that should have driven the Stage C decision arrives here, after the decision has been locked and paid for. A six-week spread was knowable on day one and shown on day last.</td>
+            <td class="c-sev"><span class="chip c-blocks">Blocks</span></td>
+            <td class="c-ev"><span class="evtag">Audit &middot; Copy &middot; Press</span><span class="evnote">Reporting describes slots gone in under three minutes and applicants retrying for more than ten days.</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">Flagship. Availability precedes the location commitment.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">E / 22</span><span class="step-name">Payment</span><div class="codes"><span class="code">C</span></div></td>
+            <td>Pay the fee.</td>
+            <td>Complete payment through the gateway.</td>
+            <td>That nothing about their application has been checked by anyone, and the money is now spent.</td>
+            <td>Payment is the point of no return, and it sits before the first act of verification rather than after it.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit</span></td>
+            <td class="c-scope"><span class="scope part">Partial</span><span class="scope-why">We design where payment sits in the sequence, not the gateway.</span></td>
+          </tr>
+
+          <tr>
+            <td class="col-step"><span class="step-id">E / 23</span><span class="step-name">Print the ARN receipt</span><div class="codes"><span class="code">J</span></div></td>
+            <td>Know that I am done, and know what to carry.</td>
+            <td>Print an Application Reference Number receipt.</td>
+            <td>What to bring, in what form, in whose name &mdash; and whether they are in fact ready.</td>
+            <td>The receipt confirms the booking. It does not confirm the applicant. They walk into a passport office with an appointment and no idea whether their file will survive the counter.</td>
+            <td class="c-sev"><span class="chip c-risks">Risks</span></td>
+            <td class="c-ev"><span class="evtag">Audit</span></td>
+            <td class="c-scope"><span class="scope fix">Fix</span><span class="scope-why">The confidence checkpoint lands here, and is the last thing the applicant sees.</span></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ SCOPE ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">Column 8, pulled out</span>
+      <h2>What we fix, and what we deliberately don&rsquo;t</h2>
+      <p>One discipline runs through the whole list: <b>no fix requires a rule to change.</b> ECR stays a legal category, annexures stay, the quota stays. Everything on the left is achievable inside existing policy &mdash; which is what makes the Document Advisor such a find. The rules are already encoded. They are simply wearing a bureaucratic interface, and sitting in the wrong part of the site.</p>
+    </div>
+
+    <div class="split">
+      <div>
+        <h3><span class="scope fix">Fix</span> Seven moves</h3>
+        <ol>
+          <li><b>Derive the ECR category</b> from circumstances already declared, name the consequence in plain language, and let the applicant override. <span>Root V, L, J</span></li>
+          <li><b>Document readiness with per-document status</b> &mdash; digital where DigiLocker already holds it, original plus copy where it does not. Kills the ambiguous parenthetical. <span>Root V, J</span></li>
+          <li><b>Address confidence</b> &mdash; derive district, state and police station from the PIN, and answer the question the applicant is actually asking: does this document prove the address I entered? <span>Root L, J</span></li>
+          <li><b>Availability before commitment</b> &mdash; show real slot dates across the relevant centres before the Passport Office is chosen, and make the State &rarr; RPO &rarr; PSK/POPSK hierarchy visible rather than implied. <span>Root C, V</span></li>
+          <li><b>An application workspace</b> &mdash; mid-task, the interface stops competing with the task. <span>Root A</span></li>
+          <li><b>A readiness checkpoint</b> before payment, and again on the receipt. The system takes responsibility for saying <em class="q">you are ready</em>. <span>Root J</span></li>
+          <li><b>A first-timer path</b> &mdash; collapse Previous Passport, prefill what Aadhaar and the PIN already provide, and explain why each remaining field is asked. <span>Root L, V, A</span></li>
+        </ol>
+      </div>
+      <div>
+        <h3><span class="scope leave">Leave</span> And why</h3>
+        <ul>
+          <li><b>Login, account creation, captcha.</b> <span>Works. Redesigning it demonstrates nothing.</span></li>
+          <li><b>The payment gateway itself.</b> <span>We move where payment sits in the sequence, not how it processes.</span></li>
+          <li><b>Slot supply &mdash; 45 per centre per day.</b> <span>A capacity policy, not a design problem. We can make the constraint legible and honest. We cannot make more slots.</span></li>
+          <li><b>Police verification.</b> <span>Already improving on its own: the mPassport Police App is live in 25-plus states and has cut verification to roughly a fortnight. Redesigning it would be claiming credit for someone else&rsquo;s work.</span></li>
+          <li><b>Name-splitting rules and the criminal declarations.</b> <span>Legal text. We gloss it in plain language; we do not rewrite it.</span></li>
+          <li><b>Emergency contact.</b> <span>An ordinary form asked in an ordinary way.</span></li>
+          <li><b>Tatkaal, minors, re-issue, lost or damaged, name change, ECR-country specifics, diplomatic and official passports.</b> <span>All outside the one flow. Naming them as out of scope is what keeps the flow honest.</span></li>
+          <li><b>Anything needing policy change</b> &mdash; abolishing ECR, retiring annexures. <span>Interesting, and not a design deliverable.</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VERDICT ============ -->
+  <section>
+    <div class="sec-head">
+      <span class="eyebrow">The question the map was built to answer</span>
+      <h2>Four root problems, or ten symptoms?</h2>
+    </div>
+
+    <div class="verdict">
+      <p class="big">Neither. Five roots &mdash; and they are not evenly spread. Vocabulary touches ten steps and absence of feedback touches nine, and the two compound: the applicant is asked to use words they do not have, and is never told whether they used them correctly.</p>
+      <p>The other three are narrower and sharper. <b>Labour</b> shows up wherever the system asks for something sitting three fields above, one document away, or inside an Aadhaar it already validates. <b>Commitment</b> is concentrated in a single structural fault: the Passport Office is locked at step 06 and appointment availability appears at step 21. <b>Attention</b> is the odd one out &mdash; purely presentational, cheapest to fix, and the one that carries a before-and-after most visibly.</p>
+      <p>What the map settles is where to build. Roots do not accumulate gradually; they converge on six shaded rows. <b>Address Details, the lock alert, the truth declaration, Details Verification, and Appointment Availability</b> &mdash; four consecutive screens plus the alert between them &mdash; carry every one of the five. That run is the redesign, and everything else is context around it.</p>
+      <p>The strongest thing this map produces is not a list of faults. It is a single claim with twenty-three pieces of evidence behind it: <b>the system already knows almost everything it asks the applicant to work out.</b> Not a rebuild. A reversal of who does the work.</p>
+    </div>
+
+    <div class="openq">
+      <h3>Honest gaps in the evidence column</h3>
+      <ul>
+        <li>The <span class="mono">69.26%</span> figure is a share of grievances, not a failure rate. It establishes that this flow is the most-complained-about service in its ministry. It does not establish why.</li>
+        <li>No official rejection-rate data for address mismatch exists in indexed sources. The supporting material is almost entirely passport-agent and insurance SEO content, which is commercially motivated and was discarded. Severity on step 12 is reasoned, not measured &mdash; and marked as such.</li>
+        <li>Rajya Sabha Unstarred Question No. 2792, answered 19 December 2024, &ldquo;Passport Statistics and Reforms&rdquo; &mdash; a primary source not yet read. The most likely place for real numbers.</li>
+        <li>Nine rows rest on design inference rather than external evidence. That is acceptable for a current-state map. It would not be acceptable as a claim about outcomes.</li>
+        <li>No applicant has been interviewed. Every &ldquo;what they have to understand&rdquo; cell is inferred from the screen, not observed in use.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>Current-state map only. Built from screenshots of the live Passport Seva portal captured 22 August 2026, plus published government and press sources. No redesign proposed here.</p>
+    <p>Self-directed project. Not affiliated with, endorsed by, or representative of the Ministry of External Affairs or the Passport Seva Programme.</p>
+  </footer>
+
+</div>

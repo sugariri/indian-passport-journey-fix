@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/ibm-plex-sans";
+@custom-variant dark (&:is(.dark *));
+:root{--background:oklch(1 0 0);--foreground:oklch(.17 0 0);--card:oklch(1 0 0);--card-foreground:oklch(.17 0 0);--popover:oklch(1 0 0);--popover-foreground:oklch(.17 0 0);--primary:oklch(.54 .21 262);--primary-foreground:oklch(.99 0 0);--secondary:oklch(.96 0 0);--secondary-foreground:oklch(.17 0 0);--muted:oklch(.96 0 0);--muted-foreground:oklch(.43 0 0);--accent:oklch(.93 .03 258);--accent-foreground:oklch(.17 0 0);--destructive:oklch(.51 .2 25);--border:oklch(.89 0 0);--input:oklch(.96 0 0);--ring:oklch(.54 .21 262);--radius:0}
+@theme inline{--font-sans:'IBM Plex Sans Variable',Arial,sans-serif;--font-heading:'IBM Plex Sans Variable',Arial,sans-serif;--color-background:var(--background);--color-foreground:var(--foreground);--color-card:var(--card);--color-card-foreground:var(--card-foreground);--color-popover:var(--popover);--color-popover-foreground:var(--popover-foreground);--color-primary:var(--primary);--color-primary-foreground:var(--primary-foreground);--color-secondary:var(--secondary);--color-secondary-foreground:var(--secondary-foreground);--color-muted:var(--muted);--color-muted-foreground:var(--muted-foreground);--color-accent:var(--accent);--color-accent-foreground:var(--accent-foreground);--color-destructive:var(--destructive);--color-border:var(--border);--color-input:var(--input);--color-ring:var(--ring);--radius-sm:0;--radius-md:0;--radius-lg:0}
+@layer base{*{@apply border-border}body{@apply bg-background text-foreground}button:not(:disabled),[role="button"]:not(:disabled){cursor:pointer}}

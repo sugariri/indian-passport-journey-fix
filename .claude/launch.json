@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "passport-journey",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "/Users/ritikafinsynth/Desktop/AI folder/Passport site/passport-journey"],
+      "port": 5173
+    }
+  ]
+}

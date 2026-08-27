@@ -1,0 +1,922 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Passport Journey — Independent Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root {
+  --ground:     #E5E8EE;
+  --card:       #FCFDFE;
+  --sunk:       #EDF0F5;
+  --line:       #C6CDDA;
+  --line-soft:  #DCE1EA;
+  --ink:        #131A2B;
+  --ink-2:      #4A5468;
+  --ink-3:      #737D92;
+
+  --navy:       #1B3160;
+  --navy-2:     #2A4A85;
+  --navy-tint:  #DDE4F2;
+  --btn-bg:     #1B3160;
+  --btn-fg:     #FCFDFE;
+
+  --gold:       #8A6413;
+  --gold-tint:  #F3E8D0;
+  --gold-line:  #D9C48D;
+
+  --ok:         #1E6647;
+  --ok-tint:    #DBE9E1;
+  --warn:       #8A5A12;
+  --warn-tint:  #F3E7CF;
+  --stop:       #96261F;
+  --stop-tint:  #F4E0DE;
+
+  --maxw:       1220px;
+  --r:          3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:     #0E121C;
+    --card:       #161B27;
+    --sunk:       #1D2331;
+    --line:       #2E3648;
+    --line-soft:  #252C3B;
+    --ink:        #DFE4EC;
+    --ink-2:      #A5AEC0;
+    --ink-3:      #7A8497;
+
+    --navy:       #8FA9DE;
+    --navy-2:     #A9BEEA;
+    --navy-tint:  #1D2740;
+    --btn-bg:     #7FA0E0;
+    --btn-fg:     #0E121C;
+
+    --gold:       #D6A64A;
+    --gold-tint:  #2B2415;
+    --gold-line:  #574728;
+
+    --ok:         #7FC0A0;
+    --ok-tint:    #14251F;
+    --warn:       #DDA757;
+    --warn-tint:  #2A2216;
+    --stop:       #E8837A;
+    --stop-tint:  #2C1B19;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground:     #0E121C;
+  --card:       #161B27;
+  --sunk:       #1D2331;
+  --line:       #2E3648;
+  --line-soft:  #252C3B;
+  --ink:        #DFE4EC;
+  --ink-2:      #A5AEC0;
+  --ink-3:      #7A8497;
+
+  --navy:       #8FA9DE;
+  --navy-2:     #A9BEEA;
+  --navy-tint:  #1D2740;
+  --btn-bg:     #7FA0E0;
+  --btn-fg:     #0E121C;
+
+  --gold:       #D6A64A;
+  --gold-tint:  #2B2415;
+  --gold-line:  #574728;
+
+  --ok:         #7FC0A0;
+  --ok-tint:    #14251F;
+  --warn:       #DDA757;
+  --warn-tint:  #2A2216;
+  --stop:       #E8837A;
+  --stop-tint:  #2C1B19;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono {
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+h1, h2, h3 { margin: 0; font-weight: 600; text-wrap: balance; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+
+:where(a, button, input, select, textarea, summary, label.opt):focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---------- prototype strip ---------- */
+
+.proto-strip {
+  background: var(--gold-tint);
+  border-bottom: 1px solid var(--gold-line);
+  color: var(--gold);
+  font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  font-size: 0.66rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 0.45rem clamp(1rem, 4vw, 2rem);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  justify-content: space-between;
+}
+.proto-strip b { font-weight: 600; }
+
+/* ---------- chrome ---------- */
+
+.chrome {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+.chrome-in {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0.85rem clamp(1rem, 4vw, 2rem);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.mark {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-right: auto;
+}
+.mark-glyph {
+  width: 26px; height: 26px;
+  border: 1.5px solid var(--navy);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--navy);
+  font-size: 0.62rem;
+  font-weight: 600;
+  font-family: "IBM Plex Mono", monospace;
+  letter-spacing: 0.02em;
+  flex: none;
+}
+.mark-t { font-weight: 600; letter-spacing: -0.008em; }
+.mark-s {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--ink-3);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.chrome-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.72rem;
+  color: var(--ink-3);
+}
+.saved { display: inline-flex; align-items: center; gap: 0.4rem; }
+.saved::before {
+  content: "";
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+.ghost {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.72rem;
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.ghost:hover { border-color: var(--navy); color: var(--navy); }
+
+/* ---------- progress path ---------- */
+
+.path {
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 57px;
+  z-index: 39;
+}
+.path-in {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 2rem);
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.path-in::-webkit-scrollbar { display: none; }
+.node {
+  appearance: none;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0.7rem 0.95rem 0.6rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  cursor: default;
+  color: var(--ink-3);
+  font-size: 0.8rem;
+}
+.node[data-visited="1"] { cursor: pointer; color: var(--ink-2); }
+.node[data-visited="1"]:hover { color: var(--navy); }
+.node-n {
+  width: 19px; height: 19px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  display: grid;
+  place-items: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.6rem;
+  font-weight: 600;
+  flex: none;
+}
+.node[data-state="done"] { color: var(--ok); }
+.node[data-state="done"] .node-n { background: var(--ok); border-color: var(--ok); color: var(--card); }
+.node[data-state="now"] {
+  color: var(--navy);
+  border-bottom-color: var(--navy);
+  font-weight: 600;
+}
+.node[data-state="now"] .node-n { background: var(--navy-tint); border-color: var(--navy); }
+
+/* ---------- stage ---------- */
+
+.stage {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: clamp(1.75rem, 4vw, 3rem) clamp(1rem, 4vw, 2rem) 8rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  gap: clamp(1.5rem, 4vw, 3.25rem);
+  align-items: start;
+}
+.stage[data-wide="1"] { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 940px) {
+  .stage { grid-template-columns: minmax(0, 1fr); }
+  .rail { order: -1; }
+}
+
+.col { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
+
+.eyebrow {
+  font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.q {
+  font-family: Newsreader, ui-serif, Georgia, serif;
+  font-size: clamp(1.65rem, 3.6vw, 2.15rem);
+  line-height: 1.14;
+  letter-spacing: -0.014em;
+}
+.sub {
+  color: var(--ink-2);
+  max-width: 60ch;
+  font-size: 1rem;
+}
+.head { display: flex; flex-direction: column; gap: 0.6rem; }
+
+/* ---------- cards & fields ---------- */
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 1.25rem 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.card-t {
+  font-size: 0.94rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.card-s { font-size: 0.85rem; color: var(--ink-2); max-width: 62ch; }
+
+.field { display: flex; flex-direction: column; gap: 0.5rem; }
+.lab { font-size: 0.9rem; font-weight: 600; }
+.hint { font-size: 0.8rem; color: var(--ink-3); max-width: 58ch; }
+
+input[type="text"], textarea, select {
+  font: inherit;
+  width: 100%;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 0.6rem 0.7rem;
+}
+input[type="text"]:hover, textarea:hover, select:hover { border-color: var(--ink-3); }
+input[type="text"]:focus, textarea:focus, select:focus { border-color: var(--navy); }
+textarea { resize: vertical; min-height: 5.5rem; line-height: 1.5; }
+input.pin {
+  font-family: "IBM Plex Mono", monospace;
+  letter-spacing: 0.22em;
+  max-width: 9.5rem;
+  font-size: 1rem;
+}
+
+/* radio option cards */
+.opts { display: flex; flex-direction: column; gap: 0.5rem; }
+.opts[data-cols="2"] { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
+label.opt {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 0.15rem 0.7rem;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 0.7rem 0.85rem;
+  cursor: pointer;
+  background: var(--card);
+}
+label.opt:hover { border-color: var(--ink-3); }
+label.opt:has(input:checked) {
+  border-color: var(--navy);
+  background: var(--navy-tint);
+  box-shadow: inset 2px 0 0 var(--navy);
+}
+label.opt input { margin: 0.25rem 0 0; accent-color: var(--navy); }
+.opt-t { font-size: 0.9rem; font-weight: 500; }
+.opt-d { grid-column: 2; font-size: 0.79rem; color: var(--ink-3); }
+
+/* inline help */
+details.why { margin-top: 0.1rem; }
+details.why > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--gold);
+  border-bottom: 1px dotted var(--gold-line);
+  width: fit-content;
+}
+details.why > summary::-webkit-details-marker { display: none; }
+details.why > summary::before { content: "?"; font-family: "IBM Plex Mono", monospace; font-weight: 600; }
+details.why[open] > summary::before { content: "\2212"; }
+details.why > div {
+  margin-top: 0.55rem;
+  padding: 0.7rem 0.85rem;
+  background: var(--gold-tint);
+  border-left: 2px solid var(--gold-line);
+  border-radius: 0 var(--r) var(--r) 0;
+  font-size: 0.83rem;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+/* chips & notes */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.63rem;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.45rem;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.chip.src   { background: var(--navy-tint); color: var(--navy); border-color: color-mix(in srgb, var(--navy) 25%, transparent); }
+.chip.ok    { background: var(--ok-tint);   color: var(--ok);   border-color: color-mix(in srgb, var(--ok) 30%, transparent); }
+.chip.warn  { background: var(--warn-tint); color: var(--warn); border-color: color-mix(in srgb, var(--warn) 30%, transparent); }
+.chip.stop  { background: var(--stop-tint); color: var(--stop); border-color: color-mix(in srgb, var(--stop) 30%, transparent); }
+.chip.proto { background: var(--gold-tint); color: var(--gold); border-color: var(--gold-line); }
+
+.note {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15rem 0.7rem;
+  padding: 0.8rem 0.95rem;
+  border-radius: var(--r);
+  border: 1px solid;
+  font-size: 0.86rem;
+}
+.note-t { font-weight: 600; }
+.note-b { grid-column: 2; color: var(--ink-2); max-width: 60ch; }
+.note-b p + p { margin-top: 0.45rem; }
+.note::before {
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.note.ok   { background: var(--ok-tint);   border-color: color-mix(in srgb, var(--ok) 35%, transparent);   color: var(--ok); }
+.note.ok::before { content: "\2713"; }
+.note.warn { background: var(--warn-tint); border-color: color-mix(in srgb, var(--warn) 35%, transparent); color: var(--warn); }
+.note.warn::before { content: "!"; }
+.note.stop { background: var(--stop-tint); border-color: color-mix(in srgb, var(--stop) 35%, transparent); color: var(--stop); }
+.note.stop::before { content: "\00D7"; }
+.note.info { background: var(--sunk); border-color: var(--line-soft); color: var(--ink); }
+.note.info::before { content: "\2192"; }
+.note.proto { background: var(--gold-tint); border-color: var(--gold-line); color: var(--gold); }
+.note.proto::before { content: "\25CB"; }
+
+/* ---------- rail ---------- */
+
+.rail {
+  position: sticky;
+  top: 106px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-left: 2px solid var(--gold-line);
+  padding-left: 1.1rem;
+}
+@media (max-width: 940px) { .rail { position: static; } }
+.rail-h { display: flex; flex-direction: column; gap: 0.3rem; }
+.rail-t {
+  font-family: Newsreader, ui-serif, Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+.rail-s { font-size: 0.78rem; color: var(--ink-3); }
+.facts { display: flex; flex-direction: column; gap: 0.55rem; }
+.fact {
+  background: var(--card);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r);
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.28rem;
+  animation: rise 0.32s ease both;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } }
+@media (prefers-reduced-motion: reduce) { .fact { animation: none; } }
+.fact-k {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.61rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.fact-v { font-size: 0.89rem; font-weight: 600; line-height: 1.3; }
+.fact-w { font-size: 0.775rem; color: var(--ink-2); line-height: 1.45; }
+.fact-a {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  width: fit-content;
+}
+.fact.empty { border-style: dashed; color: var(--ink-3); font-size: 0.8rem; }
+
+/* ---------- action bar ---------- */
+
+.actions {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  z-index: 41;
+}
+.actions-in {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0.8rem clamp(1rem, 4vw, 2rem);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.act-note { font-size: 0.78rem; color: var(--ink-3); margin-right: auto; max-width: 46ch; }
+.btn {
+  border: 1px solid var(--btn-bg);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border-radius: var(--r);
+  padding: 0.6rem 1.15rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--navy-2); border-color: var(--navy-2); }
+.btn[disabled] { opacity: 0.4; cursor: not-allowed; }
+.btn.sec { background: none; color: var(--ink-2); border-color: var(--line); }
+.btn.sec:hover { border-color: var(--navy); color: var(--navy); background: none; }
+
+/* ---------- prototype tray ---------- */
+
+.tray {
+  position: fixed;
+  left: clamp(0.5rem, 2vw, 1.25rem);
+  bottom: 4.6rem;
+  z-index: 42;
+  width: min(280px, calc(100vw - 2rem));
+  background: var(--card);
+  border: 1px solid var(--gold-line);
+  border-radius: var(--r);
+  box-shadow: 0 6px 20px rgba(19, 26, 43, 0.14);
+}
+.tray > summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.5rem 0.7rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--gold);
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.tray > summary::-webkit-details-marker { display: none; }
+.tray > summary::after { content: "\25B2"; font-size: 0.55rem; }
+.tray[open] > summary::after { content: "\25BC"; }
+.tray-b {
+  border-top: 1px solid var(--gold-line);
+  padding: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.tray-b p { font-size: 0.76rem; color: var(--ink-2); }
+.tray-b button {
+  text-align: left;
+  background: var(--sunk);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r);
+  padding: 0.4rem 0.55rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+.tray-b button:hover { border-color: var(--gold-line); color: var(--gold); }
+
+/* ---------- misc blocks ---------- */
+
+.rows { display: flex; flex-direction: column; }
+.row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  gap: 0.2rem 0.7rem;
+  padding: 0.8rem 0;
+  border-top: 1px solid var(--line-soft);
+  align-items: start;
+}
+.row:first-child { border-top: 0; }
+.row-i {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.62rem;
+  font-weight: 600;
+  margin-top: 0.1rem;
+}
+.row-i.ok   { background: var(--ok);   color: var(--card); }
+.row-i.warn { background: var(--warn); color: var(--card); }
+.row-i.stop { background: var(--stop); color: var(--card); }
+.row-i.idle { background: var(--sunk); color: var(--ink-3); border: 1px solid var(--line); }
+.row-t { font-size: 0.9rem; font-weight: 600; }
+.row-b { grid-column: 2; font-size: 0.82rem; color: var(--ink-2); max-width: 58ch; }
+.row-b p + p { margin-top: 0.35rem; }
+.row-x { grid-row: 1; grid-column: 3; }
+
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 0.4rem 1.1rem; font-size: 0.86rem; }
+.kv dt { color: var(--ink-3); }
+.kv dd { margin: 0; font-weight: 500; }
+
+.diff {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--sunk);
+  border-radius: var(--r);
+  padding: 0.8rem 0.9rem;
+  font-size: 0.84rem;
+}
+.diff-r { display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.7rem; align-items: baseline; }
+.diff-k {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.63rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.diff mark {
+  background: var(--warn-tint);
+  color: var(--warn);
+  border-radius: 2px;
+  padding: 0 0.15rem;
+  font-weight: 600;
+}
+
+.hier {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.55rem;
+  font-size: 0.83rem;
+  color: var(--ink-2);
+}
+.hier .lvl {
+  background: var(--sunk);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--r);
+  padding: 0.25rem 0.5rem;
+}
+.hier .lvl b { font-weight: 600; color: var(--ink); }
+.hier .arw { color: var(--ink-3); font-family: "IBM Plex Mono", monospace; }
+
+.centres { display: flex; flex-direction: column; gap: 0.6rem; }
+.centre {
+  display: grid;
+  grid-template-columns: 18px 1fr auto;
+  gap: 0.3rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 0.85rem 0.95rem;
+  background: var(--card);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+.centre:hover { border-color: var(--ink-3); }
+.centre[aria-pressed="true"] {
+  border-color: var(--navy);
+  background: var(--navy-tint);
+  box-shadow: inset 2px 0 0 var(--navy);
+}
+.centre-r {
+  width: 15px; height: 15px;
+  border: 1.5px solid var(--ink-3);
+  border-radius: 50%;
+  margin-top: 0.2rem;
+}
+.centre[aria-pressed="true"] .centre-r { border-color: var(--navy); border-width: 4px; }
+.centre-t { font-size: 0.9rem; font-weight: 600; }
+.centre-d { grid-column: 2; font-size: 0.79rem; color: var(--ink-2); }
+.centre-w { grid-row: 1 / span 2; grid-column: 3; text-align: right; display: flex; flex-direction: column; gap: 0.15rem; }
+.centre-date { font-family: "IBM Plex Mono", monospace; font-size: 0.83rem; font-weight: 600; }
+.centre-lbl { font-size: 0.68rem; color: var(--ink-3); }
+
+.days { display: flex; gap: 0.45rem; overflow-x: auto; padding-bottom: 0.3rem; }
+.day {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: var(--r);
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  text-align: center;
+  min-width: 4.6rem;
+  flex: none;
+}
+.day:hover { border-color: var(--ink-3); }
+.day[aria-pressed="true"] { border-color: var(--navy); background: var(--navy-tint); color: var(--navy); }
+.day-w { display: block; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); }
+.day[aria-pressed="true"] .day-w { color: var(--navy); }
+.day-d { display: block; font-family: "IBM Plex Mono", monospace; font-size: 1rem; font-weight: 600; }
+.day-m { display: block; font-size: 0.66rem; color: var(--ink-3); }
+.day[aria-pressed="true"] .day-m { color: var(--navy); }
+
+.slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 0.45rem; }
+.slot {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: var(--r);
+  padding: 0.45rem 0.5rem;
+  cursor: pointer;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.82rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  align-items: flex-start;
+}
+.slot:hover { border-color: var(--ink-3); }
+.slot[aria-pressed="true"] { border-color: var(--navy); background: var(--navy-tint); color: var(--navy); }
+.slot[disabled] { opacity: 0.45; cursor: not-allowed; text-decoration: line-through; }
+.slot small {
+  font-family: "Public Sans", sans-serif;
+  font-size: 0.66rem;
+  color: var(--ink-3);
+  text-decoration: none;
+}
+
+.ready-h {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 1.6rem 0 0.4rem;
+  border-top: 3px double var(--line);
+}
+.ready-t {
+  font-family: Newsreader, ui-serif, Georgia, serif;
+  font-size: clamp(2rem, 5vw, 2.9rem);
+  line-height: 1.08;
+  letter-spacing: -0.016em;
+  color: var(--ok);
+}
+.two {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.1rem;
+  align-items: start;
+}
+
+.foot {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 2rem clamp(1rem, 4vw, 2rem) 7rem;
+  border-top: 1px solid var(--line-soft);
+  font-size: 0.78rem;
+  color: var(--ink-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.foot p { max-width: 74ch; }
+.foot a { color: var(--navy); }
+
+[hidden] { display: none !important; }
+.screen { display: flex; flex-direction: column; gap: 1.5rem; animation: fade 0.25s ease both; }
+@keyframes fade { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .screen { animation: none; } }
+.sr {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+</style>
+
+<style>
+  .app-shell { min-height: 100dvh; }
+  .workspace-tools{display:flex;align-items:center;gap:.45rem;margin-left:auto;flex-wrap:wrap}.workspace-tools[hidden]{display:none!important}.account-menu{position:relative}.account-menu summary{list-style:none;border:1px solid var(--line);padding:.58rem .7rem;border-radius:var(--r);font-size:.82rem;cursor:pointer}.account-menu summary::-webkit-details-marker{display:none}.account-menu[open] summary{border-color:var(--navy)}.account-pop{position:absolute;right:0;top:calc(100% + .4rem);width:235px;padding:.7rem;background:var(--card);border:1px solid var(--line);box-shadow:0 10px 22px rgba(19,26,43,.16);z-index:60}.account-pop p{font-size:.78rem;color:var(--ink-2);margin:0 0 .5rem}.account-pop button{width:100%;text-align:left;border:0;background:transparent;padding:.45rem;cursor:pointer}.account-pop button:hover{background:var(--sunk)}
+  .statusbar { max-width: var(--maxw); margin: 0 auto; padding: 0.7rem clamp(1rem,4vw,2rem); display:flex; justify-content:space-between; gap:1rem; align-items:center; font-size:.78rem; color:var(--ink-2); }
+  .save-state { display:flex; gap:.45rem; align-items:center; } .save-dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+  .journey { max-width:var(--maxw); margin:0 auto; padding: 1.1rem clamp(1rem,4vw,2rem) 0; }
+  .journey-list { display:grid; grid-template-columns:repeat(10,1fr); gap:.2rem; border-bottom:1px solid var(--line); padding-bottom:.9rem; }
+  .journey-step { border:0; background:transparent; text-align:left; padding:.2rem .25rem .2rem 0; cursor:pointer; color:var(--ink-3); font-size:.7rem; line-height:1.2; }
+  .journey-step b { display:block; font-family:"IBM Plex Mono",monospace; font-size:.63rem; margin-bottom:.25rem; letter-spacing:.06em; }
+  .journey-step[aria-current="step"] { color:var(--navy); font-weight:700; } .journey-step[aria-current="step"] b{color:var(--gold)}
+  .main { max-width:var(--maxw); margin:0 auto; padding:clamp(1.3rem,4vw,2.8rem) clamp(1rem,4vw,2rem) 1rem; }
+  .eyebrow { color:var(--gold); font-family:"IBM Plex Mono",monospace; font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; font-weight:600; }
+  .title { max-width:18ch; font-family:Newsreader,Georgia,serif; font-size:clamp(2.1rem,5vw,3.8rem); line-height:1.02; letter-spacing:-.03em; margin:.42rem 0 .7rem; }
+  .lede { color:var(--ink-2); max-width:58ch; font-size:1.02rem; }
+  .lead-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(270px,.75fr); gap:2.1rem; align-items:start; }
+  .readiness-card { border:1px solid var(--gold-line); background:var(--gold-tint); padding:1.05rem; border-radius:var(--r); }
+  .readiness-card h2 {font-size:1rem; margin-bottom:.45rem;} .readiness-card p{font-size:.86rem;color:var(--ink-2)}
+  .readiness-count { font-family:Newsreader,Georgia,serif; color:var(--gold); font-size:3rem; line-height:1; margin:.8rem 0 .2rem; }
+  .panel { border:1px solid var(--line); background:var(--card); padding:clamp(1rem,3vw,1.45rem); border-radius:var(--r); }
+  .panel + .panel {margin-top:1rem;} .panel h2{font-size:1.1rem;margin-bottom:.35rem}.panel p{color:var(--ink-2);font-size:.88rem}
+  .choice-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; margin-top:1.1rem; }
+  .choice { text-align:left; cursor:pointer; border:1px solid var(--line); background:var(--card); padding:1rem; border-radius:var(--r); min-height:120px; }
+  .choice:hover,.choice[aria-pressed="true"]{border-color:var(--navy); background:var(--navy-tint)} .choice strong{display:block;margin-bottom:.3rem}.choice small{color:var(--ink-2);line-height:1.35}
+  .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1.1rem}.field{display:flex;flex-direction:column;gap:.35rem}.field.wide{grid-column:1/-1}.field label{font-size:.83rem;font-weight:600}.field small{font-size:.75rem;color:var(--ink-3)}
+  input,select{min-height:42px;border:1px solid var(--line);background:var(--card);border-radius:var(--r);padding:.55rem .65rem;font:inherit;color:var(--ink)}
+  .notice { border-left:3px solid var(--navy); background:var(--navy-tint); padding:.75rem .85rem; margin-top:1rem; color:var(--ink-2); font-size:.84rem; }
+  .notice.warn{border-color:var(--warn);background:var(--warn-tint)}.notice.ok{border-color:var(--ok);background:var(--ok-tint)}
+  .actions {display:flex;gap:.65rem;justify-content:space-between;align-items:center;margin-top:1.15rem;flex-wrap:wrap}.actions .right{display:flex;gap:.65rem;margin-left:auto}
+  .callout {border-top:1px solid var(--line-soft);padding-top:1rem;margin-top:1.1rem}.callout strong{font-size:.88rem}.callout p{margin-top:.22rem}
+  .disclosure{font-size:.75rem;color:var(--ink-3);margin-top:.8rem}.summary-card{border:1px solid var(--line);background:var(--sunk);padding:.9rem;border-radius:var(--r);margin-top:1rem}.summary-card h3{font-size:.9rem;margin-bottom:.4rem}
+  .mock-payment {display:flex;align-items:center;gap:.8rem;margin-top:1rem;padding:.9rem;background:var(--sunk);border-radius:var(--r);font-size:.85rem}.mock-payment b{font-family:"IBM Plex Mono",monospace;color:var(--navy)}
+  .screen[data-screen="confirmed"] .panel{border-top:3px solid var(--ok)}
+  .dashboard-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(240px,.8fr);gap:1rem}.dashboard-status{padding:1rem;border:1px solid var(--line);background:var(--sunk)}
+  @media(max-width:720px){.lead-grid,.dashboard-grid{grid-template-columns:1fr}.journey{padding-top:.6rem}.journey-list{display:flex;overflow:auto;gap:1rem}.journey-step{min-width:76px}.form-grid,.choice-grid{grid-template-columns:1fr}.title{font-size:2.5rem}.actions .right{margin-left:0;width:100%;justify-content:flex-end}.statusbar{align-items:flex-start}.proto-strip{font-size:.58rem}.workspace-tools{width:100%;justify-content:flex-end}.chrome-in{gap:.55rem}}
+</style>
+
+<div class="app-shell">
+  <div class="proto-strip"><span><b>Independent prototype</b> · not an official government service</span><span>All people, data, documents, availability and payment are simulated</span></div>
+  <header class="chrome">
+    <div class="chrome-in">
+      <div class="mark"><span class="mark-glyph">PJ</span><span class="mark-t">Passport journey<span class="mark-s">First-time application support</span></span></div>
+      <div class="workspace-tools" id="workspaceTools" hidden><button class="btn sec" id="applicationNav" type="button">My application</button><button class="btn sec" id="documentNav" type="button">Documents</button><button class="btn sec" id="saveExit" type="button">Save & exit</button><details class="account-menu"><summary>Account</summary><div class="account-pop"><p>Mock applicant account</p><button type="button" id="helpLink">Get help with this application</button><button type="button" id="logoutLink">Sign out safely</button></div></details></div>
+      <button class="btn sec" id="restart" type="button">Restart demo</button>
+    </div>
+    <div class="statusbar"><span id="screenLabel">Start your application</span><span class="save-state"><i class="save-dot"></i><span id="saveStatus">Your draft is safe</span></span></div>
+  </header>
+
+  <nav class="journey" aria-label="Application progress"><div class="journey-list" id="journeyNav"></div></nav>
+
+  <main class="main" id="app" aria-live="polite">
+    <section class="screen" data-screen="start">
+      <div class="lead-grid">
+        <div><div class="eyebrow">A clearer way to apply</div><h1 class="title">Know you are ready before you commit.</h1><p class="lede">This guided journey helps first-time applicants understand what applies to them, connect their address to supporting proof, and arrive at an appointment knowing what to bring.</p></div>
+        <aside class="readiness-card"><h2>Your readiness</h2><p>We will check your application as you go—not only at the counter.</p><div class="readiness-count" id="readinessCount">0 / 4</div><p>eligibility, address, documents and appointment</p></aside>
+      </div>
+      <div class="panel"><h2>What do you need to do?</h2><p>Choose the situation that sounds most like you. This routes the application; it is not a legal decision.</p><div class="choice-grid"><button class="choice" id="freshChoice" aria-pressed="true" type="button"><strong>My first ordinary passport</strong><small>I have not previously held an ordinary Indian passport.</small></button><button class="choice" id="reissueChoice" aria-pressed="false" type="button"><strong>I already have or had a passport</strong><small>Renewal, changes, loss, damage and expired passports use a different route.</small></button></div><div class="notice" id="routeNote">You will continue with the fresh ordinary-passport journey.</div><div class="actions"><span></span><div class="right"><button class="btn" id="startJourney" type="button">Start fresh application</button></div></div></div>
+    </section>
+
+    <section class="screen" data-screen="personal" hidden>
+      <div class="eyebrow">Step 1 of 9 · Personal details</div><h1 class="title">Start with the details that identify you.</h1><p class="lede">Use the spelling and date that appear on the document you plan to use as proof of identity. We explain why each detail is needed.</p>
+      <div class="panel"><h2>Your name and birth details</h2><div class="form-grid"><div class="field"><label for="givenName">Given name</label><input id="givenName" value="Aditi"/><small>Use the name as it appears on your proof.</small></div><div class="field"><label for="surname">Surname</label><input id="surname" value="Sharma"/><small>Leave blank only if it is blank on your document.</small></div><div class="field"><label for="dob">Date of birth</label><input id="dob" value="18/07/1998" inputmode="numeric"/></div><div class="field"><label for="birthPlace">Place of birth</label><input id="birthPlace" value="Bengaluru, Karnataka"/></div><div class="field wide"><label for="employment">Employment type</label><select id="employment"><option>Private-sector employee</option><option>Student</option><option>Self-employed</option><option>Government / PSU / statutory body employee</option><option>Other</option></select><small>This can affect which supporting documents the official process asks you to provide.</small></div></div><div class="notice"><strong>First-time route:</strong> you told us you have not held an ordinary passport. We have hidden Previous Passport details instead of asking you to work through fields that do not apply.</div><div class="actions"><button class="btn sec back" type="button">Back</button><div class="right"><button class="btn next" type="button">Continue to eligibility</button></div></div></div>
+    </section>
+
+    <section class="screen" data-screen="eligibility" hidden>
+      <div class="eyebrow">Step 2 of 9 · Eligibility</div><h1 class="title">Tell us about your situation. We will explain the category.</h1><p class="lede">You should not need to know passport abbreviations before you can begin.</p>
+      <div class="panel"><h2>Education and work</h2><div class="form-grid"><div class="field"><label for="education">Highest education completed</label><select id="education"><option value="graduate">Graduate or above</option><option value="school">Class 10 / school-level qualification</option><option value="other">Another situation / not sure</option></select></div><div class="field"><label for="workAbroad">Are you applying to take up employment abroad?</label><select id="workAbroad"><option value="no">No / not currently</option><option value="yes">Yes</option><option value="unsure">I am not sure</option></select></div></div><div class="notice ok" id="ecrResult"><strong>Based on what you shared:</strong> you may be eligible for the Non-ECR category. We will show what to review before you submit.</div><div class="callout"><strong>What does Non-ECR mean?</strong><p>It is a passport category related to emigration checks. This prototype explains the result; your documents and the Passport Seva process determine the final outcome.</p></div><div class="actions"><button class="btn sec back" type="button">Back</button><div class="right"><button class="btn next" type="button">Continue to address</button></div></div></div>
+    </section>
+
+    <section class="screen" data-screen="family" hidden>
+      <div class="eyebrow">Step 3 of 9 · Family details</div><h1 class="title">Add the family details the application needs.</h1><p class="lede">Use names from the relevant records. If your situation is different, tell the service rather than trying to force it into the standard fields.</p>
+      <div class="panel"><h2>Parent or guardian details</h2><div class="form-grid"><div class="field"><label for="fatherName">Father’s name</label><input id="fatherName" value="Rajesh Sharma"/></div><div class="field"><label for="motherName">Mother’s name</label><input id="motherName" value="Meena Sharma"/></div><div class="field wide"><label for="familySituation">Does a legal guardian or another family situation apply?</label><select id="familySituation"><option>No, the standard details above apply</option><option>Yes, I need to provide guardian details</option><option>I need help understanding this section</option></select></div></div><div class="notice"><strong>Why this is here:</strong> family details are part of the official application. The prototype keeps the standard path simple and makes exceptions visible instead of hiding them in a note.</div><div class="actions"><button class="btn sec back" type="button">Back</button><div class="right"><button class="btn next" type="button">Continue to address</button></div></div></div>
+    </section>
+
+    <section class="screen" data-screen="address" hidden>
+      <div class="eyebrow">Step 4 of 9 · Address and proof</div><h1 class="title">Enter the address where you currently live—and the proof you will use.</h1><p class="lede">This address matters for your application and delivery. Check it against an accepted proof before you submit.</p>
+      <div class="panel"><h2>Present residential address</h2><div class="form-grid"><div class="field wide"><label for="street">House number and street</label><input id="street" value="14, 2nd Cross, Indiranagar" /></div><div class="field"><label for="city">City</label><input id="city" value="Bengaluru" /></div><div class="field"><label for="pin">PIN code</label><input id="pin" inputmode="numeric" value="560038" /></div></div><div class="notice"><strong>Location help:</strong> use the address where you currently reside. District and police-station details can be confirmed from the PIN during the official process.</div></div>
+      <div class="panel"><h2>Which proof will support this address?</h2><p>Select the document you intend to use. This mock check does not replace PSK verification.</p><div class="form-grid"><div class="field wide"><label for="addressProof">Present-address proof</label><select id="addressProof"><option value="match">Aadhaar — same address as entered</option><option value="rent">Registered rent agreement — same address as entered</option><option value="different">Aadhaar — address is different</option><option value="unsure">I need to check my document</option></select></div></div><div class="notice ok" id="addressResult"><strong>Looks ready to review.</strong> Your selected proof appears to support the address you entered. Bring it for verification if required.</div><div class="actions"><button class="btn sec back" type="button">Back</button><div class="right"><button class="btn next" id="addressNext" type="button">Continue to documents</button></div></div></div>
+    </section>
+
+    <section class="screen" data-screen="documents" hidden>
+      <div class="eyebrow">Step 5 of 9 · Your documents</div><h1 class="title">One checklist. Clear status for every document.</h1><p class="lede">The application keeps the guidance with you. You do not need to start a separate document-advisor journey.</p>
+      <div class="panel"><div class="rows" id="documentRows"></div><div class="disclosure">Document status and DigiLocker behaviour are simulated for this prototype. Final verification happens through Passport Seva / PSK procedures.</div><div class="actions"><button class="btn sec back" type="button">Back</button><div class="right"><button class="btn next" id="docsNext" type="button">Review readiness</button></div></div></div>
+    </section>
+
+    <section class="screen" data-screen="declarations" hidden>
+      <div class="eyebrow">Step 6 of 9 · Other details</div><h1 class="title">Answer the legal questions in plain language first.</h1><p class="lede">The official declarations remain important. This step helps you recognise the ordinary “No” case and find help before you make a legal declaration.</p>
+      <div class="panel"><h2>Travel and passport history</h2><div class="form-grid"><div class="field"><label for="legalCase">Do you have a pending criminal case, court order, arrest warrant, or restriction on leaving India?</label><select id="legalCase"><option value="no">No</option><option value="yes">Yes / I need help</option></select></div><div class="field"><label for="previousRefusal">Has an Indian passport previously been refused, impounded, revoked, or cancelled for you?</label><select id="previousRefusal"><option value="no">No</option><option value="yes">Yes / I need help</option></select></div></div><div class="notice" id="legalHelp"><strong>These are legal declarations.</strong> If any answer is yes or uncertain, the prototype would route you to official help instead of guessing an answer for you.</div><div class="actions"><button class="btn sec back" type="button">Back</button><div class="right"><button class="btn next" type="button">Continue to readiness review</button></div></div></div>
+    </section>
+
+    <section class="screen" data-screen="review" hidden>
+      <div class="eyebrow">Step 7 of 9 · Readiness review</div><h1 class="title">Review evidence before you make a declaration.</h1><p class="lede">This is not final government verification. It shows what appears ready and what you should resolve before submitting.</p>
+      <div class="panel"><div class="rows" id="reviewRows"></div><div class="summary-card"><h3>Before you declare</h3><p id="reviewText">Confirm that the current address and selected proof are correct. A later change of residential address may affect an application, so check now if you are unsure.</p></div><label class="opt" style="display:flex;gap:.6rem;align-items:flex-start;margin-top:1rem"><input type="checkbox" id="declaration" style="min-height:auto;margin-top:.2rem"/><span>I have reviewed my details and understand that document verification happens during the official process.</span></label><div class="actions"><button class="btn sec back" type="button">Back</button><div class="right"><button class="btn next" id="reviewNext" type="button" disabled>Continue to appointment</button></div></div></div>
+    </section>
+
+    <section class="screen" data-screen="appointment" hidden>
+      <div class="eyebrow">Step 8 of 9 · Appointment</div><h1 class="title">See your options before you book.</h1><p class="lede">Choose a centre you can reach. Dates are indicative mock availability; live slot allocation and payment rules would remain with Passport Seva.</p>
+      <div class="panel"><h2>How locations work</h2><div class="hier"><span class="lvl"><b>State</b> Karnataka</span><span class="arw">→</span><span class="lvl"><b>RPO</b> Bengaluru</span><span class="arw">→</span><span class="lvl"><b>Visit</b> PSK / POPSK</span></div></div>
+      <div class="panel"><h2>Centres near Bengaluru</h2><div class="centres" id="centres"></div><div class="callout"><strong id="chosenCentreText">Select a centre to view a mock appointment time.</strong><div class="days" id="days" style="margin-top:.8rem" hidden></div><div class="slots" id="slots" style="margin-top:.8rem" hidden></div></div><div class="actions"><button class="btn sec back" type="button">Back</button><div class="right"><button class="btn" id="bookBtn" type="button" disabled>Mock pay and book</button></div></div></div>
+    </section>
+
+    <section class="screen" data-screen="dashboard" hidden>
+      <div class="eyebrow">Saved application</div><h1 class="title">Your application is safely saved.</h1><p class="lede">You can leave now and return from My application. Nothing has been submitted, paid for, or booked yet.</p>
+      <div class="dashboard-grid"><div class="panel"><h2>Fresh ordinary passport</h2><div class="rows"><div class="row"><span class="row-i ok">✓</span><div class="row-t" id="resumeStage">Personal details saved</div><span class="chip ok">Draft</span><div class="row-b"><p>Your application reference is <span class="mono">MOCK-DRAFT-018</span>.</p><p>Resume from the same point whenever you are ready.</p></div></div></div><div class="actions"><button class="btn sec" id="backToStart" type="button">Return to start</button><div class="right"><button class="btn" id="resumeApplication" type="button">Resume application</button></div></div></div><aside class="dashboard-status"><h2>Documents store</h2><p>Your checklist travels with the application. No personal documents are uploaded or stored in this prototype.</p><button class="btn sec" id="dashboardDocs" type="button" style="margin-top:.9rem">View document checklist</button></aside></div>
+    </section>
+
+    <section class="screen" data-screen="confirmed" hidden>
+      <div class="eyebrow">Step 9 of 9 · Appointment ready</div><h1 class="title">You are ready for your appointment.</h1><p class="lede">This confirmation is simulated. In a real service, payment and final appointment confirmation would be completed through authorised Passport Seva systems.</p>
+      <div class="panel"><div class="ready-h"><div class="ready-t">Appointment-ready</div><div class="two"><div><h2 id="finalCentre">PSK Bengaluru, Lalbagh</h2><p id="finalSlot">Thursday · 09:30–10:00</p></div><div><dl class="kv"><dt>Application</dt><dd>Fresh ordinary passport</dd><dt>Address</dt><dd id="finalAddress">14, 2nd Cross, Indiranagar, Bengaluru</dd><dt>Reference</dt><dd class="mono">MOCK-PSP-260824-018</dd></dl></div></div></div><div class="panel" style="margin-top:1.2rem"><h2>Bring to the appointment</h2><div class="rows" id="finalRows"></div></div><div class="notice"><strong>Found an error?</strong> If you notice a mistake in the application, ask about the correction route at Counter A before verification. A genuinely changed residential address may affect the application; this prototype does not promise an automatic edit.</div><div class="actions"><span></span><div class="right"><button class="btn sec" id="restart2" type="button">Restart journey</button></div></div></div>
+    </section>
+  </main>
+  <footer class="foot"><p><b>Prototype disclosure.</b> This independent concept uses synthetic data and mock logic to demonstrate a clearer citizen journey. It is not affiliated with, endorsed by, or connected to the Government of India, Passport Seva, DigiLocker, UIDAI, or a payment provider.</p></footer>
+</div>
+
+<script>
+(() => {
+  const order = ['start','personal','eligibility','family','address','documents','declarations','review','appointment','confirmed'];
+  const labels = ['Start','Personal','Eligibility','Family','Address','Documents','Other details','Readiness','Appointment','Ready'];
+  const state = { screen:0, fresh:true, proof:'match', centre:null, day:null, slot:null };
+  const $ = s => document.querySelector(s);
+  const nav = $('#journeyNav');
+  function renderNav(){ nav.innerHTML = order.map((name,i)=>`<button class="journey-step" type="button" data-go="${i}" ${i===state.screen?'aria-current="step"':''} ${i>state.screen?'disabled':''}><b>${String(i+1).padStart(2,'0')}</b>${labels[i]}</button>`).join(''); nav.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(+b.dataset.go)); }
+  function go(i){ state.screen=i; document.querySelectorAll('[data-screen]').forEach(s=>s.hidden=s.dataset.screen!==order[i]); $('#screenLabel').textContent = labels[i] + (i===0?' your application':''); $('#saveStatus').textContent=i===0?'Your draft is safe':'Draft saved · resume anytime'; $('#workspaceTools').hidden=i===0; $('#readinessCount').textContent=(i===0?'0':readiness())+' / 4'; renderNav(); window.scrollTo({top:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); if(order[i]==='documents') renderDocs(); if(order[i]==='review') renderReview(); if(order[i]==='appointment') {renderCentres();renderDays();} if(order[i]==='confirmed') renderFinal(); }
+  function utility(screen){ document.querySelectorAll('[data-screen]').forEach(s=>s.hidden=s.dataset.screen!==screen); $('#screenLabel').textContent=screen==='dashboard'?'Saved application':'Account'; $('#saveStatus').textContent='Draft saved · resume anytime'; $('#workspaceTools').hidden=false; renderNav(); window.scrollTo({top:0,behavior:'smooth'}); }
+  function readiness(){ return state.proof==='match'||state.proof==='rent' ? 4 : 3; }
+  function updateEcr(){ const e=$('#education').value, w=$('#workAbroad').value, r=$('#ecrResult'); if(e==='graduate'){r.className='notice ok';r.innerHTML='<strong>Based on what you shared:</strong> you may be eligible for the Non-ECR category. We will show what to review before you submit.'} else if(w==='unsure'||e==='other'){r.className='notice warn';r.innerHTML='<strong>Let’s check this before you continue.</strong> We cannot confidently suggest a category from these answers. Save your draft and review the official criteria or supporting proof.'} else {r.className='notice';r.innerHTML='<strong>Your category needs a closer check.</strong> We will keep this visible in your document checklist so you can review suitable proof.'} }
+  function updateAddress(){ state.proof=$('#addressProof').value;const r=$('#addressResult'),n=$('#addressNext'); if(state.proof==='match'||state.proof==='rent'){r.className='notice ok';r.innerHTML='<strong>Looks ready to review.</strong> Your selected proof appears to support the address you entered. Bring it for verification if required.';n.disabled=false}else if(state.proof==='different'){r.className='notice warn';r.innerHTML='<strong>Needs attention before you submit.</strong> This proof shows a different address. Choose a proof that supports your current address, or save your draft and check your documents.';n.disabled=true}else{r.className='notice warn';r.innerHTML='<strong>Save and check your proof.</strong> You can safely return from My Applications once you know which document supports this address.';n.disabled=true} }
+  function docs(){ const good=state.proof==='match'||state.proof==='rent'; return [ ['Proof of birth','Driving licence shared through DigiLocker','Digital copy shared', 'ok'], ['Present-address proof',good?($('#addressProof').value==='rent'?'Registered rent agreement':'Aadhaar'):'Choose a supporting proof',good?'Bring original + copy for verification':'Resolve before submitting',good?'ok':'warn'], ['Non-ECR review','Education detail recorded','Review supporting proof if the official process requires it','idle'] ]; }
+  function row([t,a,b,k]){const icon=k==='ok'?'✓':k==='warn'?'!':'i';return `<div class="row"><span class="row-i ${k}">${icon}</span><div class="row-t">${t}</div><span class="chip ${k==='ok'?'ok':k==='warn'?'warn':''}">${k==='ok'?'Ready':k==='warn'?'Needs attention':'To review'}</span><div class="row-b"><p>${a}</p><p>${b}</p></div></div>`}
+  function renderDocs(){$('#documentRows').innerHTML=docs().map(row).join('');}
+  function renderReview(){ const good=state.proof==='match'||state.proof==='rent'; $('#reviewRows').innerHTML=docs().map(row).join(''); $('#reviewText').textContent=good?'Your selected address proof appears to support the address entered. Final document verification happens at your appointment.':'Your address proof still needs attention. Return to the address step before making a declaration.'; $('#reviewNext').disabled=!good||!$('#declaration').checked; }
+  const centres=[{n:'PSK Bengaluru, Lalbagh',d:'4.6 km · Lalbagh Main Road',date:'Thu 03 Sep'},{n:'PSK Bengaluru, Sai Arcade',d:'8.2 km · M.G. Road',date:'Mon 07 Sep'},{n:'POPSK Bengaluru, Jayanagar',d:'6.8 km · Jayanagar',date:'Wed 09 Sep'}];
+  function renderCentres(){ $('#centres').innerHTML=centres.map((c,i)=>`<button class="centre" type="button" data-centre="${i}" aria-pressed="${state.centre===i}"><span class="centre-r"></span><span class="centre-t">${c.n}</span><span class="centre-d">${c.d}</span><span class="centre-w"><span class="centre-lbl">Indicative earliest</span><span class="centre-date">${c.date}</span></span></button>`).join('');document.querySelectorAll('[data-centre]').forEach(b=>b.onclick=()=>{state.centre=+b.dataset.centre;state.day=null;state.slot=null;renderCentres();renderDays();}); }
+  function renderDays(){const chosen=centres[state.centre];if(!chosen){$('#days').hidden=true;$('#slots').hidden=true;return} $('#chosenCentreText').textContent=chosen.n+' selected. Choose a mock appointment date and time.';$('#days').hidden=false;$('#days').innerHTML=['Thu 03','Fri 04','Sat 05'].map((d,i)=>`<button type="button" class="day" data-day="${i}" aria-pressed="${state.day===i}"><span class="day-w">September</span><span class="day-d">${d.split(' ')[1]}</span><span class="day-m">${d.split(' ')[0]}</span></button>`).join('');document.querySelectorAll('[data-day]').forEach(b=>b.onclick=()=>{state.day=+b.dataset.day;state.slot=null;renderDays();renderSlots();});renderSlots();}
+  function renderSlots(){if(state.day===null){$('#slots').hidden=true;return} $('#slots').hidden=false; $('#slots').innerHTML=['09:30','10:15','11:00','11:45'].map((s,i)=>`<button type="button" class="slot" data-slot="${i}" aria-pressed="${state.slot===i}" ${i===2?'disabled':''}>${s}<small>${i===2?'Unavailable':'Available'}</small></button>`).join('');document.querySelectorAll('[data-slot]').forEach(b=>b.onclick=()=>{state.slot=+b.dataset.slot;renderSlots();}); $('#bookBtn').disabled=state.slot===null;}
+  function renderFinal(){ const c=centres[state.centre]||centres[0], times=['09:30–10:00','10:15–10:45','11:00–11:30','11:45–12:15']; $('#finalCentre').textContent=c.n;$('#finalSlot').textContent=(['Thursday, 03 September','Friday, 04 September','Saturday, 05 September'][state.day||0])+' · '+times[state.slot||0];$('#finalAddress').textContent=$('#street').value+', '+$('#city').value+' · '+$('#pin').value;$('#finalRows').innerHTML=docs().filter(x=>x[3]!=='warn').map(row).join(''); }
+  $('#freshChoice').onclick=()=>{state.fresh=true;$('#freshChoice').setAttribute('aria-pressed','true');$('#reissueChoice').setAttribute('aria-pressed','false');$('#routeNote').textContent='You will continue with the fresh ordinary-passport journey.';$('#startJourney').disabled=false;};
+  $('#reissueChoice').onclick=()=>{state.fresh=false;$('#freshChoice').setAttribute('aria-pressed','false');$('#reissueChoice').setAttribute('aria-pressed','true');$('#routeNote').textContent='Re-issue uses a different route for an existing passport. This prototype focuses on first-time applicants.';$('#startJourney').disabled=true;};
+  $('#startJourney').onclick=()=>go(1); document.querySelectorAll('.next').forEach(b=>b.onclick=()=>go(Math.min(state.screen+1,order.length-1)));document.querySelectorAll('.back').forEach(b=>b.onclick=()=>go(Math.max(state.screen-1,0)));$('#education').onchange=updateEcr;$('#workAbroad').onchange=updateEcr;$('#addressProof').onchange=updateAddress;$('#declaration').onchange=renderReview; $('#bookBtn').onclick=()=>go(9); const reset=()=>{state.screen=0;state.centre=null;state.day=null;state.slot=null;$('#declaration').checked=false;updateAddress();go(0);};$('#restart').onclick=reset;$('#restart2').onclick=reset;
+  $('#applicationNav').onclick=()=>go(state.screen||1); $('#documentNav').onclick=()=>go(order.indexOf('documents')); $('#saveExit').onclick=()=>{ $('#resumeStage').textContent=labels[state.screen]+' saved'; utility('dashboard'); }; $('#resumeApplication').onclick=()=>go(state.screen||1); $('#backToStart').onclick=()=>go(0); $('#dashboardDocs').onclick=()=>go(order.indexOf('documents')); $('#helpLink').onclick=()=>{alert('Mock help: save your draft, review the relevant step, or ask at the PSK/Counter A where the online service cannot resolve your case.');}; $('#logoutLink').onclick=()=>{utility('dashboard'); $('#screenLabel').textContent='Signed out safely · draft retained';};
+  renderNav();updateEcr();updateAddress();renderCentres();
+})();
+</script>

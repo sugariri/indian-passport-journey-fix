@@ -1,0 +1,1043 @@
+<title>Passport Flow Remap</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;450;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #f4f4f4;
+    --surface: #ffffff;
+    --surface-2: #f8f8f8;
+    --ink: #161616;
+    --ink-2: #525252;
+    --ink-3: #8d8d8d;
+    --line: #e0e0e0;
+    --line-strong: #c6c6c6;
+    --accent: #0f62fe;
+    --accent-ink: #0043ce;
+    --keep: #198038;    --keep-bg: #defbe6;
+    --transform: #0043ce; --transform-bg: #d0e2ff;
+    --move: #6929c4;    --move-bg: #e8daff;
+    --merge: #005d5d;   --merge-bg: #9ef0f0;
+    --cut: #a2191f;     --cut-bg: #ffd7d9;
+    --add: #684e00;     --add-bg: #fddc69;
+    --rc-bg: #edf5ff;
+    --rc-ink: #0043ce;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161616;
+      --surface: #21212100;
+      --surface: #1f1f1f;
+      --surface-2: #262626;
+      --ink: #f4f4f4;
+      --ink-2: #c6c6c6;
+      --ink-3: #8d8d8d;
+      --line: #393939;
+      --line-strong: #525252;
+      --accent: #4589ff;
+      --accent-ink: #78a9ff;
+      --keep: #42be65;    --keep-bg: #0e2a14;
+      --transform: #78a9ff; --transform-bg: #10254d;
+      --move: #be95ff;    --move-bg: #2b1b47;
+      --merge: #3ddbd9;   --merge-bg: #0b2f2f;
+      --cut: #ff8389;     --cut-bg: #3b1214;
+      --add: #f1c21b;     --add-bg: #372e0a;
+      --rc-bg: #10254d;
+      --rc-ink: #a6c8ff;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161616;
+    --surface: #1f1f1f;
+    --surface-2: #262626;
+    --ink: #f4f4f4;
+    --ink-2: #c6c6c6;
+    --ink-3: #8d8d8d;
+    --line: #393939;
+    --line-strong: #525252;
+    --accent: #4589ff;
+    --accent-ink: #78a9ff;
+    --keep: #42be65;    --keep-bg: #0e2a14;
+    --transform: #78a9ff; --transform-bg: #10254d;
+    --move: #be95ff;    --move-bg: #2b1b47;
+    --merge: #3ddbd9;   --merge-bg: #0b2f2f;
+    --cut: #ff8389;     --cut-bg: #3b1214;
+    --add: #f1c21b;     --add-bg: #372e0a;
+    --rc-bg: #10254d;
+    --rc-ink: #a6c8ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px 96px; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace; }
+
+  /* ---------- header ---------- */
+  header.masthead {
+    border-bottom: 1px solid var(--line-strong);
+    padding: 56px 0 36px;
+    margin-bottom: 8px;
+  }
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    margin: 0 0 14px;
+  }
+  h1 {
+    font-size: clamp(30px, 5vw, 46px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    margin: 0 0 18px;
+    text-wrap: balance;
+    max-width: 22ch;
+  }
+  .masthead p.lede {
+    max-width: 62ch;
+    font-size: 16.5px;
+    color: var(--ink-2);
+    margin: 0;
+  }
+  .masthead p.lede strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- legends ---------- */
+  .legends {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-top: none;
+    background: var(--surface);
+    margin-bottom: 56px;
+  }
+  .legend-block { padding: 22px 24px 24px; }
+  .legend-block + .legend-block { border-left: 1px solid var(--line); }
+  .legend-block h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 14px;
+  }
+  .rc-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .rc-list li { display: flex; gap: 10px; align-items: baseline; }
+  .rc-tag {
+    flex: none;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 1px 7px 2px;
+    background: var(--rc-bg);
+    color: var(--rc-ink);
+    border-radius: 2px;
+  }
+  .rc-list span.def { color: var(--ink-2); font-size: 13.5px; }
+  .rc-list b { color: var(--ink); font-weight: 600; }
+  .chip-list { display: flex; flex-direction: column; gap: 8px; }
+  .chip-row { display: flex; gap: 10px; align-items: baseline; }
+  .chip-row span.def { color: var(--ink-2); font-size: 13.5px; }
+
+  .chip {
+    flex: none;
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 9px 3px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .chip.keep      { background: var(--keep-bg);      color: var(--keep); }
+  .chip.transform { background: var(--transform-bg); color: var(--transform); }
+  .chip.move      { background: var(--move-bg);      color: var(--move); }
+  .chip.merge     { background: var(--merge-bg);     color: var(--merge); }
+  .chip.cut       { background: var(--cut-bg);       color: var(--cut); }
+  .chip.add       { background: var(--add-bg);       color: var(--add); }
+
+  /* ---------- stages ---------- */
+  .stage { margin-bottom: 64px; }
+  .stage-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 10px;
+    margin-bottom: 0;
+  }
+  .stage-head .stage-no {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--ink-3);
+  }
+  .stage-head h2 {
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .stage-head .stage-note {
+    margin-left: auto;
+    font-size: 13px;
+    color: var(--ink-3);
+    text-align: right;
+  }
+
+  .map-row {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) 128px minmax(0, 5fr);
+    border: 1px solid var(--line);
+    border-top: none;
+    background: var(--surface);
+  }
+  .map-row:first-of-type { border-top: none; }
+  .old-cell, .new-cell { padding: 20px 22px 22px; min-width: 0; }
+  .old-cell { border-right: 1px solid var(--line); }
+  .decision-cell {
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 10px;
+    background: var(--surface-2);
+  }
+  .decision-cell .arrow { color: var(--ink-3); font-size: 15px; line-height: 1; }
+  .cell-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 8px;
+  }
+  .old-cell h3, .new-cell h3 {
+    font-size: 15.5px;
+    font-weight: 600;
+    margin: 0 0 6px;
+    line-height: 1.35;
+  }
+  .old-cell p, .new-cell p {
+    font-size: 13.5px;
+    color: var(--ink-2);
+    margin: 0 0 10px;
+  }
+  .old-cell p:last-child, .new-cell p:last-child { margin-bottom: 0; }
+  .new-cell ul {
+    margin: 0 0 12px; padding: 0; list-style: none;
+    display: flex; flex-direction: column; gap: 7px;
+    font-size: 13.5px; line-height: 1.55; color: var(--ink-2);
+  }
+  .new-cell ul li { padding-left: 16px; position: relative; }
+  .new-cell ul li::before { content: "→"; position: absolute; left: 0; color: var(--ink-3); }
+  .new-cell ul b { color: var(--ink); font-weight: 600; }
+  .evidence {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-3);
+    display: block;
+    margin-top: 10px;
+  }
+  .rc-inline { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .dest {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent-ink);
+    border-bottom: 1px solid var(--accent-ink);
+    padding-bottom: 1px;
+    margin-bottom: 8px;
+  }
+
+  /* ---------- new spine ---------- */
+  .spine { margin-bottom: 64px; }
+  .spine-intro { max-width: 62ch; color: var(--ink-2); font-size: 15px; margin: 16px 0 24px; }
+  .chapter-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .journey-strip {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 18px 22px 20px;
+    margin: 0 0 24px;
+    overflow-x: auto;
+  }
+  .journey-strip .strip-label {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 0 0 12px;
+  }
+  .strip-groups { display: flex; gap: 18px; min-width: max-content; }
+  .strip-group { display: flex; flex-direction: column; gap: 8px; }
+  .strip-group .g-name {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--accent-ink);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 4px;
+    white-space: nowrap;
+  }
+  .strip-group .g-stages { display: flex; gap: 6px; }
+  .strip-group .stage-pill {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11.5px;
+    color: var(--ink-2);
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    padding: 3px 9px 4px;
+    white-space: nowrap;
+  }
+  .chapter-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    padding: 20px 22px 22px;
+  }
+  .chapter-card.pre { border-top-color: var(--line-strong); }
+  .chapter-card .ch-no {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .chapter-card h3 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
+  .chapter-card .answers {
+    font-size: 13px;
+    color: var(--accent-ink);
+    font-weight: 500;
+    margin: 0 0 12px;
+    font-style: normal;
+  }
+  .chapter-card ul { margin: 0; padding: 0 0 0 0; list-style: none; display: flex; flex-direction: column; gap: 7px; }
+  .chapter-card li { font-size: 13.5px; color: var(--ink-2); padding-left: 14px; position: relative; }
+  .chapter-card li::before {
+    content: "";
+    position: absolute; left: 0; top: 8px;
+    width: 6px; height: 1.5px;
+    background: var(--ink-3);
+  }
+  .chapter-card li b { color: var(--ink); font-weight: 600; }
+  .outcome {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line-strong);
+    font-size: 13px;
+    color: var(--ink-2);
+  }
+  .outcome b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- open decisions ---------- */
+  .open-list { display: flex; flex-direction: column; }
+  .open-item {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-top: none;
+    padding: 18px 22px;
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 14px;
+  }
+  .open-item:first-child { border-top: 1px solid var(--line); }
+  .open-item .q-mark {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--add);
+    font-weight: 500;
+    padding-top: 1px;
+  }
+  .open-item h3 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+  .open-item p { font-size: 13.5px; color: var(--ink-2); margin: 0; }
+  .open-item p b { color: var(--ink); font-weight: 600; }
+
+  .section-head {
+    display: flex; align-items: baseline; gap: 16px;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 10px; margin-bottom: 0;
+  }
+  .section-head h2 { font-size: 21px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .section-head .stage-no { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink-3); }
+
+  footer {
+    margin-top: 72px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--ink-3);
+    max-width: 70ch;
+  }
+
+  @media (max-width: 780px) {
+    .legends { grid-template-columns: 1fr; }
+    .legend-block + .legend-block { border-left: none; border-top: 1px solid var(--line); }
+    .map-row { grid-template-columns: 1fr; }
+    .old-cell { border-right: none; }
+    .decision-cell {
+      flex-direction: row;
+      border-right: none;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 22px;
+      justify-content: flex-start;
+    }
+    .decision-cell .arrow { transform: rotate(90deg); }
+    .chapter-grid { grid-template-columns: 1fr; }
+    .stage-head { flex-wrap: wrap; }
+    .stage-head .stage-note { margin-left: 0; width: 100%; text-align: left; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">Passport Seva redesign · IA rationale</p>
+    <h1>Every move in the flow, and the failure it fixes</h1>
+    <p class="lede">This is an <strong>application-readiness redesign for first-time applicants</strong>: an adult applying in India for their first ordinary passport through the Normal route, who understands their own circumstances but not passport terminology, evidence rules, or office hierarchy. The single problem: they can complete the current form without knowing whether their category, address evidence, documents and appointment plan are actually ready. The map below takes each surface of the current journey — as evidenced in the screenshot audit and official sources — and states what the redesign does with it and <strong>why</strong>. No surface moves without a named failure behind it. This document is the <strong>implementation baseline</strong>, not an immutable source of truth — official evidence, usability testing or a broken prototype interaction may revise it, with every change appended to the decision log rather than silently replacing prior reasoning. With the benchmark set closed, <strong>the architecture is frozen</strong>: everything from here is solved through content, components or state design — not another restructuring.</p>
+  </header>
+
+  <div class="legends">
+    <div class="legend-block">
+      <h2>Root causes (from the audit)</h2>
+      <ul class="rc-list">
+        <li><span class="rc-tag">RC1</span><span class="def"><b>Vocabulary</b> — government terms arrive before the user has context to understand them.</span></li>
+        <li><span class="rc-tag">RC2</span><span class="def"><b>Labour</b> — the applicant performs reasoning the service could do itself.</span></li>
+        <li><span class="rc-tag">RC3</span><span class="def"><b>Judgment</b> — feedback confirms fields are filled, never that the applicant is ready.</span></li>
+        <li><span class="rc-tag">RC4</span><span class="def"><b>Commitment before information</b> — consequences appear after the consequential choice.</span></li>
+        <li><span class="rc-tag">RC5</span><span class="def"><b>Attention</b> — portal chrome and quick links compete with the active task.</span></li>
+      </ul>
+    </div>
+    <div class="legend-block">
+      <h2>Decisions</h2>
+      <div class="chip-list">
+        <div class="chip-row"><span class="chip keep">Keep</span><span class="def">Policy or necessary data; survives, sometimes re-homed.</span></div>
+        <div class="chip-row"><span class="chip move">Move</span><span class="def">Right content, wrong moment; re-sequenced.</span></div>
+        <div class="chip-row"><span class="chip merge">Merge</span><span class="def">Two disconnected surfaces become one decision.</span></div>
+        <div class="chip-row"><span class="chip transform">Transform</span><span class="def">Purpose survives; the interaction is rebuilt.</span></div>
+        <div class="chip-row"><span class="chip cut">Eliminate</span><span class="def">Removed from the first-time route entirely.</span></div>
+        <div class="chip-row"><span class="chip add">Add</span><span class="def">New experience; no counterpart in the original.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= STAGE 1 ================= -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-no">Stage 1</span>
+      <h2>Discovery &amp; entry</h2>
+      <span class="stage-note">Before the user has chosen anything</span>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <p class="cell-label">Current service</p>
+        <h3>Portal home: service catalogue + quick links</h3>
+        <p>Apply, Track, Document Advisor, Fee Calculator and more presented as equal links. The user must know which service they need before the service has asked who they are.</p>
+        <div class="rc-inline"><span class="rc-tag">RC1</span><span class="rc-tag">RC5</span></div>
+        <span class="evidence">SCREEN · portal home audit</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <p class="cell-label">Redesign</p>
+        <span class="dest">Entry screen</span>
+        <h3>One situation question: “What are you applying for?”</h3>
+        <p>The user states their situation in their own terms; the service derives the route. Specialised services stay reachable but subordinated — they no longer compete with the primary task.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Fresh vs Re-issue as peer radio buttons inside the form</h3>
+        <p>An unexplained category choice buried inside a shared application, after commitment has begun.</p>
+        <div class="rc-inline"><span class="rc-tag">RC1</span></div>
+        <span class="evidence">SCREEN + OFFICIAL · Application FAQ</span>
+      </div>
+      <div class="decision-cell"><span class="chip move">Move</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Entry screen</span>
+        <h3>Becomes the entry routing choice, in plain language</h3>
+        <p>“My first ordinary passport” vs “I have or had a passport.” Answered once, before sign-in — then it prunes everything downstream. It never reappears as a form field.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Tatkaal offered as a form option with unexplained conditions</h3>
+        <p>An expedited scheme with its own eligibility and evidence rules, presented as a checkbox-level choice.</p>
+        <div class="rc-inline"><span class="rc-tag">RC1</span><span class="rc-tag">RC4</span></div>
+        <span class="evidence">SCREEN + OFFICIAL · Tatkaal undertaking</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Entry screen · distinct option</span>
+        <h3>Stays discoverable as a distinct option, with its conditions explained</h3>
+        <p>Tatkaal remains visible at entry as its own choice. Selecting it explains that the scheme has separate conditions and evidence rules, and that this prototype’s completed journey covers the standard route only — no invented eligibility rules, no disappearing act.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STAGE 2 ================= -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-no">Stage 2</span>
+      <h2>Account boundary</h2>
+      <span class="stage-note">An existing service boundary; the redesign improves the handoff</span>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <p class="cell-label">Current service</p>
+        <h3>Register / login, captcha</h3>
+        <p>An existing service boundary — but the selected service is not carried visibly across it. The user re-orients from scratch on the other side.</p>
+        <div class="rc-inline"><span class="rc-tag">RC4</span></div>
+        <span class="evidence">SCREEN · public-to-authenticated audit</span>
+      </div>
+      <div class="decision-cell"><span class="chip keep">Keep</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <p class="cell-label">Redesign</p>
+        <span class="dest">Sign-in screen</span>
+        <h3>Kept — with the route carried visibly across it</h3>
+        <p>The selected route shows on the sign-in page with a change action, plus one sentence on what an account protects (your draft). Authentication mechanics are not redesigned.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Post-login dashboard of all services</h3>
+        <p>A second, generic hub between signing in and the task the user already chose. Their selection is lost; they must find it again.</p>
+        <div class="rc-inline"><span class="rc-tag">RC5</span><span class="rc-tag">RC4</span></div>
+        <span class="evidence">SCREEN · logged-in dashboard</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Conditional routing after sign-in</span>
+        <h3>New applicants continue directly; returning applicants get My applications</h3>
+        <p>A new applicant with a carried route lands inside their application — no generic hub in the way. But a returning citizen may hold a draft, a submitted application, a paid-but-unbooked one, or several records at once — for them, My applications is a real destination, not a gate.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STAGE 3 ================= -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-no">Stage 3</span>
+      <h2>Application setup</h2>
+      <span class="stage-note">What the form asks before it asks anything</span>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <p class="cell-label">Current service</p>
+        <h3>State → RPO selected up front, then locked</h3>
+        <p>The applicant binds themselves to a Regional Passport Office before seeing any centre context or dates. Availability appears only at scheduling, after payment.</p>
+        <div class="rc-inline"><span class="rc-tag">RC4</span></div>
+        <span class="evidence">SCREEN + OFFICIAL · appointment availability page</span>
+      </div>
+      <div class="decision-cell"><span class="chip move">Move</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <p class="cell-label">Redesign</p>
+        <span class="dest">Chapter 2 · Address &amp; office (jurisdiction) → Chapter 4 (booking)</span>
+        <h3>Jurisdiction is explained at Address; the transaction happens at Appointment</h3>
+        <p>Jurisdiction cannot wait until booking — POPSK eligibility depends on whether the present address falls in the selected RPO’s jurisdiction. So the Address &amp; office stage uses PIN/address to explain <em>present address → Passport Office → eligible PSK or POPSK</em> and preview indicative availability. The Appointment chapter then handles the actual booking.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>“Passport Type” step: fresh/re-issue, normal/Tatkaal, booklet pages</h3>
+        <p>Three unrelated decisions bundled as one step — two are route questions already answerable earlier, one is a fee question whose consequence isn’t shown.</p>
+        <div class="rc-inline"><span class="rc-tag">RC1</span><span class="rc-tag">RC4</span></div>
+        <span class="evidence">SCREEN · step 01 of the current form</span>
+      </div>
+      <div class="decision-cell"><span class="chip cut">Eliminate</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">— dissolved</span>
+        <h3>The step disappears; its three questions relocate</h3>
+        <p>Fresh/re-issue → entry. Tatkaal → distinct entry option with its conditions explained. Booklet pages → the Passport options stage, beside its visible fee consequence and before the declaration.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Nine-step tracker + full portal navigation + quick links, mid-task</h3>
+        <p>Three competing navigation systems around an active form. Apply and Track links sit beside a half-finished application.</p>
+        <div class="rc-inline"><span class="rc-tag">RC5</span></div>
+        <span class="evidence">SCREEN · in-progress application, 22 Aug 2026</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Workspace shell</span>
+        <h3>Four chapters group the path; nine named stages stay visible beneath them</h3>
+        <p>One progress model from sign-in to completion: chapters give the big picture, and the nine visible stages — Personal &amp; history · Family · Contacts &amp; legal · Address &amp; office · Passport options · Documents · Review &amp; submit · Appointment · Ready — keep the complete path at a glance. What goes is the portal chrome: Apply/Track links and quick actions leave the active workspace, which keeps only Documents, Help and Save &amp; exit.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>“Save and Next”; drafts findable via My Applications</h3>
+        <p>The capability exists but is invisible in the moment — no draft status, no reassurance it’s safe to leave, no precise resume point.</p>
+        <div class="rc-inline"><span class="rc-tag">RC3</span></div>
+        <span class="evidence">SCREEN + OFFICIAL · Apply guidance</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Workspace shell</span>
+        <h3>Visible autosave with honest failure states, explicit safe exit, exact resume point</h3>
+        <p>Draft status is ambient and truthful: <em>Saving… · Saved just now · Could not save, retrying · Saved through Address &amp; office</em>. Never show “saved” unless persistence succeeded. Save &amp; exit states what is saved and the exact resume point — citizens pause to find documents or consult family. Not claimed as absent in the original — claimed as invisible.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STAGE 4 ================= -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-no">Stage 4</span>
+      <h2>The form itself</h2>
+      <span class="stage-note">Where the self-interpretation burden lives</span>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <p class="cell-label">Current service</p>
+        <h3>Applicant Details asks: “Are you eligible for Non-ECR?”</h3>
+        <p>The applicant must self-classify into a category the form never explains — while the separate Document Advisor proves the service already knows how to derive it from plain circumstances.</p>
+        <div class="rc-inline"><span class="rc-tag">RC1</span><span class="rc-tag">RC2</span><span class="rc-tag">RC3</span></div>
+        <span class="evidence">SCREEN · step 02 + OFFICIAL · Document Advisor</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <p class="cell-label">Redesign</p>
+        <span class="dest">About you → Passport options stage</span>
+        <h3>The category question is deleted; the category becomes a derived, explained result</h3>
+        <p>About you asks plain-language questions relevant to the guidance — the user never self-classifies as ECR/Non-ECR. The <em>Passport options</em> stage (not “Eligibility” — ECR is a category, not a right to hold a passport; and not “Passport details” — a first-timer could read that as an existing passport number; the page heading spells it out: <em>Passport category, booklet and fee</em>) then shows the likely category with its reasoning, explains what ECR/Non-ECR means, and holds the booklet choice beside its visible fee consequence. This is the flagship move — the thesis made visible.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Family Details step</h3>
+        <p>Required policy data. The failure is placement and tone, not existence — exceptions (guardianship, differing situations) are handled in fine print.</p>
+        <span class="evidence">SCREEN · step 03</span>
+      </div>
+      <div class="decision-cell"><span class="chip keep">Keep</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Chapter 1 · About you</span>
+        <h3>Kept, grouped under About you, exceptions made visible</h3>
+        <p>Parents’ names as records show them; guardian and non-standard situations offered as explicit, explained choices rather than a footnote.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>“Previous Passport” step, shown to first-time applicants</h3>
+        <p>The form already knows this is a fresh application — yet walks the user through full previous-passport detail fields. But eliminating the step entirely would be factually wrong: a fresh ordinary applicant may have held a diplomatic/official passport, or applied before without being issued one, and the official form distinguishes those cases.</p>
+        <div class="rc-inline"><span class="rc-tag">RC2</span></div>
+        <span class="evidence">SCREEN · step 07 + OFFICIAL · re-issue guidance</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Chapter 1 · Personal &amp; history</span>
+        <h3>Becomes three conditional history questions, not a step</h3>
+        <p>Ever held an ordinary passport? Ever held a diplomatic or official passport? Ever applied without being issued one? A “no” to all three prunes every detail field; a “yes” opens only what applies. Only irrelevant fields disappear — the safety-relevant questions stay.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Emergency Contact stage; two local references as form fields</h3>
+        <p>Emergency Contact is a named tracker stage; two local references are fields in the official form/rules, not a separate stage. Both are required application data with low comprehension cost — and both are currently missing from the prototype.</p>
+        <span class="evidence">SCREEN · tracker + OFFICIAL · Passport Rules form fields</span>
+      </div>
+      <div class="decision-cell"><span class="chip keep">Keep</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Chapter 1 · Contacts &amp; legal</span>
+        <h3>Reinstated as fields — evidence now confirms them</h3>
+        <p>They join the Contacts &amp; legal stage as plain fields, not as invented tracker stages. Resolves what was previously an open decision.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>“Other Details”: legal and criminal-proceeding questions as a step</h3>
+        <p>A miscellaneous bucket named “Other,” carrying the journey’s most consequential legal questions in statute language.</p>
+        <div class="rc-inline"><span class="rc-tag">RC1</span></div>
+        <span class="evidence">SCREEN · step 08</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Chapter 1 · Contacts &amp; legal</span>
+        <h3>“Other” is renamed out of existence: the stage becomes Contacts &amp; legal</h3>
+        <p>The least meaningful label in the journey was hiding its most consequential questions. The named stage holds emergency contact, the two references, and the legal/criminal-proceeding questions as a clearly separated subsection — plain language without diluting their seriousness. An “I need help understanding this” route hands unusual cases to the official process instead of forcing a guess.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Address entered at step 04 — its proof selected steps later, at Details Verification</h3>
+        <p>The applicant commits an address without knowing whether any document they hold supports it. The mismatch surfaces after the declaration is on screen.</p>
+        <div class="rc-inline"><span class="rc-tag">RC4</span><span class="rc-tag">RC3</span></div>
+        <span class="evidence">SCREEN · steps 04 + 09 · OFFICIAL · Tatkaal undertaking</span>
+      </div>
+      <div class="decision-cell"><span class="chip merge">Merge</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Chapter 2 · Address &amp; office</span>
+        <h3>Address, its proof, and the office it determines become one stage</h3>
+        <p>The stage does four things together: capture the present address, compare it with the chosen supporting proof (confidence state, not a verdict), use PIN/address to explain the Passport Office jurisdiction, and preview eligible nearby centres. An unresolved proof becomes a visible flag that travels forward — it never hard-blocks data entry, and it must be resolved before declaration, not after.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Document Advisor as a separate, parallel tool</h3>
+        <p>The user runs a second journey, answers overlapping questions, and manually carries the answer back to their application.</p>
+        <div class="rc-inline"><span class="rc-tag">RC2</span></div>
+        <span class="evidence">OFFICIAL · Document Advisor</span>
+      </div>
+      <div class="decision-cell"><span class="chip merge">Merge</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Chapter 2 · Documents (+ public tool retained)</span>
+        <h3>Integrated into the application — the public tool stays for preparation</h3>
+        <p>Inside the journey, the checklist derives from what the user already answered — nothing is asked twice. But the public Document Advisor (and Fee Calculator) remain as preparation tools for citizens who haven’t created an account yet, driven by the same versioned rules source as the application, so the two can never disagree.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Blanket DigiLocker note: unshared documents “must be submitted at PSK”</h3>
+        <p>One sentence covering every document, contradicted by official material that accepts specified e-documents.</p>
+        <div class="rc-inline"><span class="rc-tag">RC3</span></div>
+        <span class="evidence">SCREEN + OFFICIAL · Tatkaal undertaking</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Chapter 2 · Documents</span>
+        <h3>Per-document status: shared, to carry, or to review</h3>
+        <p>Each document states its own digital/physical situation. No blanket claim the evidence doesn’t support.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Details Verification: three proof dropdowns + declaration</h3>
+        <p>Named “verification,” it verifies nothing — the applicant attests legally before seeing whether their evidence supports what they entered.</p>
+        <div class="rc-inline"><span class="rc-tag">RC3</span><span class="rc-tag">RC4</span></div>
+        <span class="evidence">SCREEN · step 09</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Chapter 3 · Review &amp; submit</span>
+        <h3>Becomes Review &amp; submit — declaration comes after the evidence is visible</h3>
+        <p>A full answers preview with edit links, plus category, address-proof confidence and document states assembled into one checkpoint with per-item status and next actions. What can still be changed after submission — and what can’t — is explained <em>before</em> the declaration, not discovered after. Only required unresolved items block submission; confidence warnings stay visible without masquerading as official validation. The proof dropdowns are gone — chosen back in Chapter 2.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STAGE 5 ================= -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-no">Stage 5</span>
+      <h2>Commitment &amp; completion</h2>
+      <span class="stage-note">Money, booking, and what the user walks away knowing</span>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <p class="cell-label">Current service</p>
+        <h3>Pay &amp; Schedule: availability revealed after RPO lock, at payment</h3>
+        <p>The applicant discovers real dates and centre options only after their location choice is bound and money is on the table.</p>
+        <div class="rc-inline"><span class="rc-tag">RC4</span></div>
+        <span class="evidence">SCREEN + OFFICIAL · appointment availability</span>
+      </div>
+      <div class="decision-cell"><span class="chip move">Move</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <p class="cell-label">Redesign</p>
+        <span class="dest">Chapter 4 · Appointment</span>
+        <h3>Indicative availability before payment; the booking itself stays after it</h3>
+        <p>Three honest states, clearly separated: before submission, <em>“indicative availability — dates may change before booking”</em> at eligible centres; after submission, the confirmed fee and booking flow; after payment, the confirmed appointment. The redesign never promises an exact date or slot before payment, because the official process doesn’t allow one. Capacity and fees stay the government’s — only the information order changes.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>ARN receipt as the journey’s end</h3>
+        <p>Confirms a transaction happened. Says nothing about whether the applicant is ready for the appointment they just paid for.</p>
+        <div class="rc-inline"><span class="rc-tag">RC3</span></div>
+        <span class="evidence">SCREEN · confirmation state</span>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Transform</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Final stage · Ready</span>
+        <h3>Becomes the Ready stage: an appointment-preparation summary</h3>
+        <p>Centre, time, reference, the personalised carry list, DigiLocker distinctions, and what happens next. Framed honestly: <em>“Prepared for your appointment based on the information provided — final document and application verification takes place through the official process.”</em> Ready is the journey’s final visible stage.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>No correction route surfaced anywhere in the flow</h3>
+        <p>The Counter A correction path exists in the FAQ; RPO notices warn a changed residence may close the application. Neither reaches the applicant inside the journey.</p>
+        <div class="rc-inline"><span class="rc-tag">RC4</span></div>
+        <span class="evidence">OFFICIAL · Application FAQ + RPO Delhi/Mumbai notices</span>
+      </div>
+      <div class="decision-cell"><span class="chip add">Add</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Review &amp; submit + Ready</span>
+        <h3>New: correction guidance before submission, repeated at Ready</h3>
+        <p>Review &amp; submit explains what remains editable after submission and what doesn’t — before the declaration is signed. Ready then explains the Counter A route without guaranteeing outcomes, and warns honestly that a genuine change of residence is not a routine edit.</p>
+      </div>
+    </div>
+
+    <div class="map-row">
+      <div class="old-cell">
+        <h3>Track Status as a portal quick link, present throughout</h3>
+        <p>A returning-applicant tool that competes with the active application at every step.</p>
+        <div class="rc-inline"><span class="rc-tag">RC5</span></div>
+        <span class="evidence">SCREEN · portal chrome</span>
+      </div>
+      <div class="decision-cell"><span class="chip move">Move</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <span class="dest">Public header · returning actions</span>
+        <h3>Lives with Resume, outside the active application</h3>
+        <p>Available where returning applicants arrive; absent while a task is live.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= NEW SPINE ================= -->
+  <section class="spine">
+    <div class="section-head">
+      <span class="stage-no">Result</span>
+      <h2>The new journey: entry plus four application chapters</h2>
+    </div>
+    <p class="spine-intro">Choose service &amp; understand route → Sign in → About you → Address &amp; evidence → Review &amp; submit → Appointment → Ready. Chapters group the journey; inside the workspace the nine named stages stay visible beneath them — the user gets both the big picture and the exact next task. Each chapter still ends with the applicant <em>knowing</em> something.</p>
+
+    <div class="journey-strip">
+      <p class="strip-label">Inside the workspace · nine visible stages under four chapters</p>
+      <div class="strip-groups">
+        <div class="strip-group">
+          <span class="g-name">1 · About you</span>
+          <div class="g-stages"><span class="stage-pill">Personal &amp; history</span><span class="stage-pill">Family</span><span class="stage-pill">Contacts &amp; legal</span></div>
+        </div>
+        <div class="strip-group">
+          <span class="g-name">2 · Address &amp; evidence</span>
+          <div class="g-stages"><span class="stage-pill">Address &amp; office</span><span class="stage-pill">Passport options</span><span class="stage-pill">Documents</span></div>
+        </div>
+        <div class="strip-group">
+          <span class="g-name">3 · Review &amp; submit</span>
+          <div class="g-stages"><span class="stage-pill">Review &amp; submit</span></div>
+        </div>
+        <div class="strip-group">
+          <span class="g-name">4 · Appointment</span>
+          <div class="g-stages"><span class="stage-pill">Appointment</span><span class="stage-pill">Ready</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chapter-grid">
+      <div class="chapter-card pre">
+        <span class="ch-no">Before the workspace</span>
+        <h3>Choose service &amp; understand route → Sign in</h3>
+        <p class="answers">Answers: “Which journey am I on?”</p>
+        <ul>
+          <li>Choosing the service and understanding the route are <b>two outcomes of one decision surface, not two compulsory screens</b> — deeper guidance opens progressively, only when someone is unsure or selects Tatkaal or a special service</li>
+          <li>Discovery shows the real service landscape: first ordinary passport (primary), have-or-had passport, Tatkaal, diplomatic/official, identity certificate, applying outside India, “help me choose” — non-primary routes are <b>explicit handoffs, not partly simulated journeys</b></li>
+          <li>Tatkaal stays a <b>distinct option</b> — separate conditions explained, marked outside this prototype’s completed route</li>
+          <li>Sign-in carries the selected route across the existing service boundary; new applicants continue directly, returning applicants get <b>My applications</b></li>
+        </ul>
+        <div class="outcome"><b>Eliminated here:</b> the Passport Type step; the dashboard as a forced gate (it survives as a returning-applicant destination).</div>
+      </div>
+
+      <div class="chapter-card">
+        <span class="ch-no">Chapter 1 · stages: Personal &amp; history, Family, Contacts &amp; legal</span>
+        <h3>About you</h3>
+        <p class="answers">Answers: “Who am I, in the service’s records?”</p>
+        <ul>
+          <li>Personal &amp; history — identity details, plain-language questions relevant to the category guidance (<b>no ECR/Non-ECR self-classification</b>), plus <b>three conditional history questions</b>: ever held an ordinary passport, ever held a diplomatic/official one, ever applied without being issued <b>(from Applicant Details + Previous Passport, pruned not deleted)</b></li>
+          <li>Family — parents, guardianship as explained choices <b>(from Family Details)</b></li>
+          <li>Contacts &amp; legal — emergency contact, two local references, and the <b>clearly separated legal questions</b> <b>(from Emergency Contact, the form’s reference fields, and Other Details — “Other” disappears as a label)</b></li>
+        </ul>
+        <div class="outcome"><b>Chapter outcome:</b> the service knows who is applying — answers carried forward, never asked again.</div>
+      </div>
+
+      <div class="chapter-card">
+        <span class="ch-no">Chapter 2 · stages: Address &amp; office, Passport options, Documents</span>
+        <h3>Address &amp; evidence</h3>
+        <p class="answers">Answers: “Will my situation and documents hold up — and where does my case belong?”</p>
+        <ul>
+          <li>Address &amp; office — address + proof confidence, plus PIN-derived jurisdiction: <b>present address → Passport Office → eligible PSK/POPSK</b>, with indicative availability <b>(merging step 04, the step-09 proof dropdowns, and the relocated RPO explanation)</b></li>
+          <li>Passport options — the derived, explained ECR/Non-ECR guidance, reviewable, plus the <b>booklet choice beside its visible fee consequence</b> <b>(replacing the self-classification question and the Passport Type bundle)</b></li>
+          <li>Documents — personalised checklist with why each item is needed and per-document digital/physical status <b>(integrating Document Advisor; the public tool remains, on one shared rules source)</b></li>
+        </ul>
+        <div class="outcome"><b>Chapter outcome:</b> an evidence position — ready, or flagged with a named reason. Flags travel forward; they don’t block entry.</div>
+      </div>
+
+      <div class="chapter-card">
+        <span class="ch-no">Chapter 3 · stage: Review &amp; submit</span>
+        <h3>Review &amp; submit</h3>
+        <p class="answers">Answers: “Am I ready to commit — and what changes once I do?”</p>
+        <ul>
+          <li>Full answers preview with edit links <b>(from the form preview)</b> and critical readiness checks <b>(transforming Details Verification)</b></li>
+          <li>What stays editable after submission, and what doesn’t, explained <b>before</b> the declaration <b>(new — correction knowledge moved ahead of the commitment)</b></li>
+          <li>Declaration blocks only on required unresolved items — confidence warnings stay visible but never masquerade as official validation</li>
+        </ul>
+        <div class="outcome"><b>Chapter outcome:</b> an informed attestation — the applicant has seen what they’re signing and what it locks.</div>
+      </div>
+
+      <div class="chapter-card">
+        <span class="ch-no">Chapter 4 · stages: Appointment, Ready</span>
+        <h3>Appointment</h3>
+        <p class="answers">Answers: “Where do I go, when, and what do I carry?”</p>
+        <ul>
+          <li>Eligible centre and current availability, labelled <b>indicative until payment</b>; mock payment, then the formal booking <b>(from Pay &amp; Schedule — information first, commitment order unchanged)</b></li>
+          <li>Ends in <b>Ready</b> — reference, centre/time, personalised carry list, DigiLocker distinctions, correction help and next steps <b>(from the ARN receipt, plus new Counter A guidance)</b></li>
+          <li>Framed honestly: <b>prepared based on the information provided</b>; official verification happens at the PSK</li>
+        </ul>
+        <div class="outcome"><b>Chapter outcome:</b> a plan for the visit — not just a receipt.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BUILD SCOPE ================= -->
+  <section class="stage">
+    <div class="section-head">
+      <span class="stage-no">Scope</span>
+      <h2>One journey, seven recovery paths</h2>
+    </div>
+    <div class="map-row" style="border-top: 1px solid var(--line);">
+      <div class="old-cell">
+        <p class="cell-label">The one complete flow</p>
+        <h3>Adult applicant in India · first ordinary passport · Normal route</h3>
+        <p>Entry → completed application → mock payment and appointment → Ready summary. This is the only route built end-to-end. Re-issue, Tatkaal, applying abroad, diplomatic/official, Identity Certificate and minor applicants stay <b>visible but explicitly handed off</b> — building them superficially would weaken the one journey that must be deep.</p>
+        <p>The portal measures form completion. This journey measures whether a first-time applicant becomes <b>submission-ready and appointment-ready</b> without interpreting passport terminology themselves.</p>
+      </div>
+      <div class="decision-cell"><span class="chip add">Branches</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <p class="cell-label">Resilience paths inside the same journey — not separate flows</p>
+        <ul>
+          <li><b>Eligibility uncertainty</b> — “not sure” is a valid answer and produces guidance, never a forced guess (Passport options)</li>
+          <li><b>Address-proof problem</b> — proof doesn’t appear to support the entered address; correct the address or pick another document before submission (Address &amp; office)</li>
+          <li><b>Document readiness</b> — some documents mock-shared via DigiLocker, others still need preparation or review (Documents)</li>
+          <li><b>Save and resume</b> — leave to find information, return to the exact stage (everywhere)</li>
+          <li><b>Application correction</b> — a mistake caught in Review is edited before the declaration (Review &amp; submit)</li>
+          <li><b>Appointment planning</b> — compare eligible centres and indicative dates before mock payment (Appointment)</li>
+          <li><b>Honest failure</b> — failed save and failed mock-payment states, surfaced as Saving… / Saved / Couldn’t save — retrying, never hidden (everywhere)</li>
+        </ul>
+        <div class="outcome" style="margin-bottom:12px;"><b>Acceptance criteria, not roadmap:</b> the competition brief makes mobile responsiveness, slower-connection resilience, keyboard and visible-focus support, plain-language guidance, lightweight assets and interruption-safe autosave prototype requirements. Full multilingual coverage may remain future work, but layout and content must be ready for Indian-language translations.</div>
+        <div class="outcome"><b>Claim discipline:</b> less Googling, fewer preventable mistakes, fewer repeat visits are <b>hypotheses until tested with users</b> — the case study presents them as expected outcomes, never proven results.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BENCHMARK LOCK ================= -->
+  <section class="stage">
+    <div class="section-head">
+      <span class="stage-no">Benchmarks</span>
+      <h2>The reference set is closed</h2>
+    </div>
+    <div class="map-row" style="border-top: 1px solid var(--line);">
+      <div class="old-cell">
+        <p class="cell-label">Six references, one job each</p>
+        <h3>Benchmarks govern behaviour, not branding</h3>
+        <p><b>Passport Seva</b> — policy and operational truth: required information, categories, supporting-document rules, DigiLocker behaviour, RPO/PSK jurisdiction, and the submission → payment → appointment order. We improve its presentation and continuity, never its rules.</p>
+        <p><b>UX4G</b> (the Government of India&rsquo;s own design system) — the <b>primary interaction baseline</b>: eligibility guidance, progress, validation, document upload, save &amp; resume, acknowledgement, payment-failure recovery, My Applications, tracking, language switching and assisted-service handoffs. Built for Indian government services, including accessibility and limited-bandwidth conditions. shadcn may implement the interface; <b>UX4G governs its behaviour</b> — ahead of shadcn, IBM or any foreign visual system.</p>
+        <p><b>GOV.UK</b> — content and review patterns: before-you-start information, one important decision at a time, task grouping, plain-language questions, check-answers summaries with an edit link beside every answer, clear confirmation pages. Difficult decisions get focused screens; related factual fields stay grouped — not one field per page.</p>
+        <p><b>New Zealand Passports</b> — preparation and continuity: “what you need” as a first-class destination, continue/check saved applications, actionable validation feedback. No photo stage is copied — Indian ordinary-passport applicants are photographed at the PSK; the reusable idea is real-time quality feedback for uploaded evidence.</p>
+        <p><b>Ireland Passport Online</b> — concision: one focused transaction, consistent across phone, tablet and desktop, requirements and tracking beside the application, minimal portal navigation. No “ten-minute” target — the Indian first-time journey is more complex; the measure is <b>successful readiness, not speed</b>.</p>
+        <p><b>Joined online and in-person service</b> (GOV.UK channel standard) — the product does not end at Submit; the real outcome is successfully attending the PSK. The digital and physical journey connect through a printable/shareable appointment checklist, document-by-document status, centre and appointment information, correction guidance, what happens at the PSK, a human-help route and tracking after submission.</p>
+      </div>
+      <div class="decision-cell"><span class="chip keep">Locks</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <p class="cell-label">What this locks inside the nine stages — no stage added, none reordered</p>
+        <ul>
+          <li><b>Entry</b> — route discovery plus “what you&rsquo;ll need”</li>
+          <li><b>Forms</b> — inline validation and honest autosave</li>
+          <li><b>Documents</b> — checklist, status and actionable quality warnings</li>
+          <li><b>Review</b> — answers, readiness, edit links, warnings separated from blockers</li>
+          <li><b>Payment</b> — pending, failed, retry and successful states</li>
+          <li><b>Appointment</b> — indicative availability vs confirmed booking</li>
+          <li><b>Ready</b> — reference, centre, carry list, correction help, next steps</li>
+          <li><b>My Applications</b> — exact resume point and current status</li>
+          <li><b>Help</b> — contextual guidance plus an assisted route</li>
+          <li><b>System-wide</b> — responsive, keyboard accessible, lightweight, language-ready</li>
+        </ul>
+        <div class="outcome" style="margin-bottom:12px;"><b>Deliberately rejected:</b> foreign passport policies; foreign identity-referee or photo requirements; generic fintech/KYC dashboards; marketing-style SaaS visuals; AI deciding legal eligibility; “verified”, “approved” or “guaranteed” claims; a separate inferior experience for people who need assistance; adding stages because another country uses them.</div>
+        <div class="outcome"><b>Freeze conditions:</b> a structural change now requires official evidence that contradicts the architecture, a real failure in user testing, or an end-to-end interaction that cannot be completed — recorded in the decision log. Everything else is content, component or state design.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= OPEN DECISIONS ================= -->
+  <section class="stage">
+    <div class="section-head">
+      <span class="stage-no">Closed</span>
+      <h2>Formerly open — resolved by the founder audit</h2>
+    </div>
+    <div class="open-list">
+      <div class="open-item">
+        <span class="q-mark">Q1 ✓</span>
+        <div>
+          <h3>Booklet pages (36 / 60)</h3>
+          <p><b>Resolved: Passport options stage</b>, beside its visible fee consequence and before the declaration — never after it just to preserve the chapter model.</p>
+        </div>
+      </div>
+      <div class="open-item">
+        <span class="q-mark">Q2 ✓</span>
+        <div>
+          <h3>Emergency contact &amp; references</h3>
+          <p><b>Resolved: evidence confirmed.</b> Emergency Contact is a named tracker stage; two local references are fields in the official form/rules. Both are reinstated as fields in Contacts &amp; legal — not as invented tracker stages.</p>
+        </div>
+      </div>
+      <div class="open-item">
+        <span class="q-mark">Q3 ✓</span>
+        <div>
+          <h3>Answers summary in Chapter 3</h3>
+          <p><b>Resolved: confirmed.</b> Review &amp; submit carries a full answers preview with edit links above the readiness checks and declaration.</p>
+        </div>
+      </div>
+      <div class="open-item">
+        <span class="q-mark">Q4 ✓</span>
+        <div>
+          <h3>Fee visibility</h3>
+          <p><b>Resolved: integrate, don’t remove.</b> The fee shows inline in Passport options (booklet) and Appointment (total); the public Fee Calculator stays as a preparation tool, driven by the same versioned rules source as the application.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stage">
+    <div class="section-head">
+      <span class="stage-no">Guardrail</span>
+      <h2>Readiness must never become false assurance</h2>
+    </div>
+    <div class="map-row" style="border-top: 1px solid var(--line);">
+      <div class="old-cell">
+        <p class="cell-label">Never say</p>
+        <h3>Claims the prototype cannot make</h3>
+        <p>“Your address is verified.” · “Your documents are approved.” · “You are officially eligible.” · “Your appointment is guaranteed.”</p>
+        <p>Every one of these asserts an official determination that only the PSK and the passport office can make.</p>
+      </div>
+      <div class="decision-cell"><span class="chip transform">Instead</span><span class="arrow">→</span></div>
+      <div class="new-cell">
+        <p class="cell-label">Preparation states</p>
+        <h3>Confidence about preparation, not verdicts about outcomes</h3>
+        <p>“Ready to review.” · “Information complete.” · “Supporting document selected.” · “Needs action before submission.” · “Official verification happens at the PSK.”</p>
+        <p>The final state reads: <em>“Prepared for your appointment based on the information provided. Final document and application verification takes place through the official process.”</em></p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Independent redesign study. Evidence tags reference the screenshot audit (SCREEN) and official Passport Seva / MEA sources (OFFICIAL) recorded in the project decision log. Not a Government of India service; all flows use synthetic data.
+  </footer>
+</div>
