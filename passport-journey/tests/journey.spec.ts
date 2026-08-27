@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test"
 
 test.beforeEach(async ({ page }) => {
-  await page.goto("http://127.0.0.1:5173/")
+  await page.goto("/")
   await page.evaluate(() => localStorage.clear())
   await page.reload()
 })
@@ -56,11 +56,14 @@ test("lists every application with status, stage and office", async ({ page }) =
   await expect(page.getByRole("columnheader", { name: "Status" })).toBeVisible()
   await expect(page.getByRole("columnheader", { name: "Stage" })).toBeVisible()
   await expect(page.getByRole("columnheader", { name: /office & contact/i })).toBeVisible()
-  await page.getByRole("button", { name: "With the office" }).click()
+  // Scoped to the toolbar: "All" and "Cards" are short labels, and the dev-only
+  // annotation toolbar is in the page too.
+  const toolbar = page.locator(".applications-toolbar")
+  await toolbar.getByRole("button", { name: "With the office" }).click()
   await expect(rows).toHaveCount(1)
   await expect(rows.first()).toContainText("Appointment booked")
-  await page.getByRole("button", { name: "All" }).click()
-  await page.getByRole("button", { name: "Cards" }).click()
+  await toolbar.getByRole("button", { name: /^All/ }).click()
+  await toolbar.getByRole("button", { name: "Cards" }).click()
   await expect(page.locator(".applications-cards [data-slot='card']")).toHaveCount(4)
 })
 
