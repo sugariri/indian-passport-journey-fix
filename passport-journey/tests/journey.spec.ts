@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
 })
 
 test("completes the first-passport happy path", async ({ page }) => {
-  await page.getByRole("button", { name: /start first-passport application/i }).click()
+  await page.getByRole("button", { name: /my first passport/i }).click()
   await expect(page.getByRole("heading", { name: "Sign in to continue" })).toBeVisible()
   await page.getByRole("button", { name: /continue with mock sign-in/i }).click()
   const continueButton = page.getByRole("button", { name: /^continue/i })
@@ -35,22 +35,57 @@ test("completes the first-passport happy path", async ({ page }) => {
 })
 
 test("saves, exits, and resumes at the correct stage", async ({ page }) => {
-  await page.getByRole("button", { name: /start first-passport application/i }).click()
+  await page.getByRole("button", { name: /my first passport/i }).click()
   await page.getByRole("button", { name: /continue with mock sign-in/i }).click()
   await page.getByRole("button", { name: /^continue/i }).click()
   await page.getByRole("button", { name: "Save & exit" }).click()
-  await expect(page.getByRole("heading", { name: "Continue where you left off." })).toBeVisible()
-  await expect(page.getByText("Family details")).toBeVisible()
-  await page.getByRole("button", { name: /resume family/i }).click()
+  await expect(page.getByRole("heading", { name: "Everything you have started." })).toBeVisible()
+  const liveRow = page.locator(".applications-table tr.live")
+  await expect(liveRow).toContainText("Family details")
+  await expect(liveRow).toContainText("Stage 2 of 9")
+  await liveRow.getByRole("button", { name: /^resume$/i }).click()
   await expect(page.getByRole("heading", { name: "Family details" })).toBeVisible()
+})
+
+test("lists every application with status, stage and office", async ({ page }) => {
+  await page.getByRole("button", { name: /my first passport/i }).click()
+  await page.getByRole("button", { name: /continue with mock sign-in/i }).click()
+  await page.locator(".app-rail").getByRole("button", { name: "My applications" }).click()
+  const rows = page.locator(".applications-table tbody tr")
+  await expect(rows).toHaveCount(4)
+  await expect(page.getByRole("columnheader", { name: "Status" })).toBeVisible()
+  await expect(page.getByRole("columnheader", { name: "Stage" })).toBeVisible()
+  await expect(page.getByRole("columnheader", { name: /office & contact/i })).toBeVisible()
+  await page.getByRole("button", { name: "With the office" }).click()
+  await expect(rows).toHaveCount(1)
+  await expect(rows.first()).toContainText("Appointment booked")
+  await page.getByRole("button", { name: "All" }).click()
+  await page.getByRole("button", { name: "Cards" }).click()
+  await expect(page.locator(".applications-cards [data-slot='card']")).toHaveCount(4)
+})
+
+test("the rail stays available and collapses to icons", async ({ page }) => {
+  await page.getByRole("button", { name: /my first passport/i }).click()
+  await page.getByRole("button", { name: /continue with mock sign-in/i }).click()
+  const rail = page.locator(".app-rail")
+  await expect(rail.getByRole("button", { name: "My applications" })).toBeVisible()
+  await expect(rail.getByRole("button", { name: "Appointment" })).toBeDisabled()
+  await page.getByRole("button", { name: "Collapse the sidebar" }).click()
+  await expect(page.locator(".app-rail.collapsed")).toBeVisible()
+  await expect(rail.getByRole("button", { name: "Documents" })).toBeVisible()
+  await rail.getByRole("button", { name: "My applications" }).click()
+  await expect(page.getByRole("heading", { name: "Everything you have started." })).toBeVisible()
+  await expect(page.locator(".app-rail.collapsed")).toBeVisible()
+  await page.getByRole("button", { name: "Expand the sidebar" }).click()
+  await expect(page.locator(".app-rail.collapsed")).toHaveCount(0)
 })
 
 test("mobile exposes application navigation in a drawer", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.getByRole("button", { name: /start first-passport application/i }).click()
+  await page.getByRole("button", { name: /my first passport/i }).click()
   await page.getByRole("button", { name: /continue with mock sign-in/i }).click()
   await page.getByRole("button", { name: "Open application menu" }).click()
-  for (const name of ["My applications", "Documents", "Help for this stage", "Save & exit"]) {
+  for (const name of ["My applications", "Current stage", "Documents", "Help for this stage", "Save & exit", "Sign out"]) {
     await expect(page.getByRole("button", { name })).toBeVisible()
   }
 })

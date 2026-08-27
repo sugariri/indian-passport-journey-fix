@@ -121,6 +121,8 @@ export const steps: JourneyStep[] = [
   { id: "ready", label: "Ready", short: "Ready", chapter: "Appointment", icon: ShieldCheck },
 ]
 
+export const applicationReference = "FP-MOCK-2026-0148"
+
 export const chapterRanges = [
   { label: "About you", start: 0, end: 2 },
   { label: "Address & evidence", start: 3, end: 5 },
@@ -305,3 +307,133 @@ export function readinessItems(draft: ApplicationDraft): ReadinessItem[] {
 export function bookletFee(booklet: ApplicationDraft["booklet"]) {
   return booklet === "60" ? "₹2,000" : "₹1,500"
 }
+
+export type ApplicationGroup = "progress" | "waiting" | "closed"
+export type ApplicationTone = "draft" | "waiting" | "attention" | "done"
+
+export interface ApplicationRecord {
+  id: string
+  service: string
+  applicant: string
+  relation: string | null
+  reference: string | null
+  status: string
+  tone: ApplicationTone
+  group: ApplicationGroup
+  stage: string
+  stageIndex: number | null
+  totalStages: number
+  office: string
+  officeType: "PSK" | "POPSK" | "RPO"
+  contact: string
+  appointment: string | null
+  updated: string
+  nextAction: string
+  live: boolean
+}
+
+export const applicationFilters = [
+  { id: "all", label: "All" },
+  { id: "progress", label: "In progress" },
+  { id: "waiting", label: "With the office" },
+  { id: "closed", label: "Completed" },
+] as const
+
+export type ApplicationFilterId = (typeof applicationFilters)[number]["id"]
+
+export function liveApplication(draft: ApplicationDraft, current: number): ApplicationRecord {
+  const step = steps[Math.max(0, Math.min(steps.length - 1, current))]
+  const centre = draft.centre === null ? null : centres[draft.centre]
+  const booked =
+    centre && draft.day !== null && draft.slot !== null && draft.payment === "paid"
+      ? `${appointmentDays[draft.day]} 2026 · ${appointmentSlots[draft.slot].time}`
+      : null
+  return {
+    id: "live",
+    service: "Fresh ordinary passport",
+    applicant: `${draft.givenName} ${draft.surname}`.trim() || "You",
+    relation: null,
+    reference: draft.submitted ? applicationReference : null,
+    status: draft.submitted
+      ? booked
+        ? "Appointment booked"
+        : "Submitted · appointment to be chosen"
+      : "Draft in progress",
+    tone: draft.submitted ? (booked ? "waiting" : "attention") : "draft",
+    group: draft.submitted && booked ? "waiting" : "progress",
+    stage: step.label,
+    stageIndex: current,
+    totalStages: steps.length,
+    office: centre ? centre.name : "Not chosen yet",
+    officeType: centre ? centre.type : "RPO",
+    contact: centre ? `RPO ${centre.rpo} · 1800 258 1800` : "RPO Bengaluru · 1800 258 1800",
+    appointment: booked,
+    updated: "Saved on this device just now",
+    nextAction: draft.submitted
+      ? booked
+        ? "Prepare the documents listed for the appointment"
+        : "Choose an appointment slot"
+      : `Continue at ${step.label}`,
+    live: true,
+  }
+}
+
+export const sampleApplications: ApplicationRecord[] = [
+  {
+    id: "sample-minor",
+    service: "Fresh ordinary passport — minor",
+    applicant: "Aarav Sharma",
+    relation: "Linked minor",
+    reference: "FP-MOCK-2026-0092",
+    status: "Appointment booked",
+    tone: "waiting",
+    group: "waiting",
+    stage: "Appointment",
+    stageIndex: 7,
+    totalStages: steps.length,
+    office: "PSK Bengaluru, Lalbagh",
+    officeType: "PSK",
+    contact: "RPO Bengaluru · 1800 258 1800",
+    appointment: "Fri, 04 Sep 2026 · 10:15",
+    updated: "Updated 24 Aug 2026",
+    nextAction: "Both parents attend with the original documents",
+  },
+  {
+    id: "sample-reissue",
+    service: "Re-issue — change of address",
+    applicant: "Rajesh Sharma",
+    relation: "Linked family member",
+    reference: null,
+    status: "Needs attention",
+    tone: "attention",
+    group: "progress",
+    stage: "Address & office",
+    stageIndex: 3,
+    totalStages: steps.length,
+    office: "POPSK Bengaluru, Yelahanka",
+    officeType: "POPSK",
+    contact: "RPO Bengaluru · 1800 258 1800",
+    appointment: null,
+    updated: "Updated 21 Aug 2026",
+    nextAction: "The selected proof shows a different address",
+  },
+  {
+    id: "sample-pcc",
+    service: "Police clearance certificate",
+    applicant: "Meena Sharma",
+    relation: "Linked family member",
+    reference: "PCC-MOCK-2026-0031",
+    status: "Completed",
+    tone: "done",
+    group: "closed",
+    stage: "Closed",
+    stageIndex: null,
+    totalStages: steps.length,
+    office: "PSK Bengaluru, Sai Arcade",
+    officeType: "PSK",
+    contact: "RPO Bengaluru · 1800 258 1800",
+    appointment: "Attended 12 Aug 2026",
+    updated: "Closed 12 Aug 2026",
+    nextAction: "No action remains in this mock record",
+  },
+].map((record) => ({ ...record, live: false })) as ApplicationRecord[]

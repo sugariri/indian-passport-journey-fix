@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   AlertCircle,
   ArrowLeft,
@@ -18,11 +24,18 @@ import {
   Landmark,
   LogOut,
   MapPin,
+  LayoutGrid,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Plus,
   RotateCcw,
   ShieldCheck,
   Store,
+  Table2,
+  UserRound,
   WalletCards,
+  type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -73,17 +86,24 @@ import { Toaster } from "@/components/ui/sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   addressEvidence,
+  applicationFilters,
   appointmentDays,
   appointmentSlots,
+  applicationReference,
   bookletFee,
   categoryGuidance,
   centres,
   chapterRanges,
   defaultDraft,
   documentRequirements,
+  liveApplication,
   readinessItems,
+  sampleApplications,
   steps,
   type ApplicationDraft,
+  type ApplicationFilterId,
+  type ApplicationRecord,
+  type ApplicationTone,
   type EvidenceState,
   type SaveState,
   type View,
@@ -93,6 +113,7 @@ import "./App.css";
 
 const STORAGE_KEY = "passport-journey-draft-v3";
 const PROGRESS_KEY = "passport-journey-progress-v3";
+const RAIL_KEY = "passport-journey-rail-v1";
 
 function PrototypeNotice({ compact = false }: { compact?: boolean }) {
   return (
@@ -112,7 +133,22 @@ function Brand({ small = false }: { small?: boolean }) {
   return (
     <div className={small ? "brand small" : "brand"}>
       <span className="brand-mark" aria-hidden="true">
-        PJ
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          focusable="false"
+        >
+          <path d="M6.5 3.5h10a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-10z" />
+          <path d="M6.5 3.5a1.6 1.6 0 0 0 0 17" />
+          <circle cx="12.5" cy="12" r="4" />
+          <path d="M8.5 12h8" />
+          <path d="M12.5 8c1.4 2.4 1.4 5.6 0 8" />
+          <path d="M12.5 8c-1.4 2.4-1.4 5.6 0 8" />
+        </svg>
       </span>
       <span>
         <strong>Passport Journey</strong>
@@ -221,10 +257,10 @@ function StartScreen({
   resume: () => void;
 }) {
   const [location, setLocation] = useState("india");
-  const [history, setHistory] = useState("first");
   const [handoff, setHandoff] = useState<string | null>(null);
   return (
     <div className="public-page">
+      <PrototypeNotice compact />
       <header className="public-header">
         <Brand />
         <nav aria-label="Public service navigation">
@@ -235,8 +271,9 @@ function StartScreen({
           <a href="#other">Other services</a>
         </nav>
         <div className="public-actions">
-          <button onClick={resume}>Sign in</button>
-          <Badge variant="outline">Independent prototype</Badge>
+          <button className="signin-link" onClick={resume}>
+            Sign in
+          </button>
         </div>
       </header>
       <main>
@@ -297,13 +334,9 @@ function StartScreen({
                     <strong>
                       Have you ever held an ordinary Indian passport?
                     </strong>
+                    <p>Choose your answer to continue. Sign-in comes later.</p>
                     <div className="route-options">
-                      <button
-                        className={
-                          history === "first" ? "route selected" : "route"
-                        }
-                        onClick={() => setHistory("first")}
-                      >
+                      <button className="route primary" onClick={begin}>
                         <FileText />
                         <span>
                           <b>My first passport</b>
@@ -311,14 +344,15 @@ function StartScreen({
                             I have not previously held an ordinary Indian
                             passport.
                           </small>
+                          <em>Start application</em>
                         </span>
-                        <ChevronRight />
+                        <ArrowRight />
                       </button>
                       <button
-                        className={
-                          history === "existing" ? "route selected" : "route"
+                        className="route"
+                        onClick={() =>
+                          setHandoff("Re-issue of an existing passport")
                         }
-                        onClick={() => setHistory("existing")}
                       >
                         <BookOpen />
                         <span>
@@ -326,73 +360,22 @@ function StartScreen({
                           <small>
                             Renew, replace, or update an existing passport.
                           </small>
+                          <em>Not simulated in this prototype</em>
                         </span>
                         <ChevronRight />
                       </button>
                     </div>
                   </section>
-                  {history === "existing" ? (
-                    <Alert>
-                      <ArrowRight />
-                      <AlertTitle>Use the re-issue route</AlertTitle>
-                      <AlertDescription>
-                        This prototype keeps that service visible but does not
-                        simulate it. Return to the official service to renew,
-                        replace, or update a passport.
-                      </AlertDescription>
-                    </Alert>
-                  ) : (
-                    <Button size="lg" className="start-route" onClick={begin}>
-                      Start first-passport application <ArrowRight />
-                    </Button>
-                  )}
-                  <section className="tatkaal-panel">
-                    <div>
-                      <span>Need it urgently?</span>
-                      <strong>Check whether Tatkaal may apply</strong>
-                      <p>
-                        Tatkaal has separate conditions and document
-                        requirements; it is not a blanket faster route.
-                      </p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={() => setHandoff("Tatkaal guidance")}
-                    >
+                  <footer className="card-footnote">
+                    <p>
+                      <strong>Need it urgently?</strong> Tatkaal has separate
+                      conditions and document requirements; it is not a blanket
+                      faster route.
+                    </p>
+                    <button onClick={() => setHandoff("Tatkaal guidance")}>
                       Check Tatkaal guidance <ChevronRight />
-                    </Button>
-                  </section>
-                  <section className="special-services" id="other">
-                    <strong>Special services</strong>
-                    <div className="route-options">
-                      <button
-                        className="route"
-                        onClick={() =>
-                          setHandoff("Diplomatic or official passport")
-                        }
-                      >
-                        <ShieldCheck />
-                        <span>
-                          <b>Diplomatic or official passport</b>
-                          <small>For eligible official travel.</small>
-                        </span>
-                        <ChevronRight />
-                      </button>
-                      <button
-                        className="route"
-                        onClick={() => setHandoff("Identity Certificate")}
-                      >
-                        <BadgeCheck />
-                        <span>
-                          <b>Identity Certificate</b>
-                          <small>
-                            A separate document service, not a regular passport.
-                          </small>
-                        </span>
-                        <ChevronRight />
-                      </button>
-                    </div>
-                  </section>
+                    </button>
+                  </footer>
                 </>
               )}
             </CardContent>
@@ -434,8 +417,50 @@ function StartScreen({
             </article>
           </div>
         </section>
+        <section className="special-services" id="other">
+          <div>
+            <span className="eyebrow">Other services</span>
+            <h2>Special services</h2>
+            <p>
+              These stay discoverable, but sit outside the first
+              ordinary-passport journey completed in this prototype.
+            </p>
+          </div>
+          <div className="route-options">
+            <button
+              className="route"
+              onClick={() => setHandoff("Diplomatic or official passport")}
+            >
+              <ShieldCheck />
+              <span>
+                <b>Diplomatic or official passport</b>
+                <small>For eligible official travel.</small>
+              </span>
+              <ChevronRight />
+            </button>
+            <button
+              className="route"
+              onClick={() => setHandoff("Identity Certificate")}
+            >
+              <BadgeCheck />
+              <span>
+                <b>Identity Certificate</b>
+                <small>
+                  A separate document service, not a regular passport.
+                </small>
+              </span>
+              <ChevronRight />
+            </button>
+          </div>
+        </section>
       </main>
-      <PrototypeNotice />
+      <footer className="public-footer">
+        <Brand small />
+        <p>
+          Prototype for design review only. No official passport service, data,
+          or decision is provided here.
+        </p>
+      </footer>
       <Dialog open={Boolean(handoff)} onOpenChange={() => setHandoff(null)}>
         <DialogContent>
           <DialogHeader>
@@ -559,7 +584,44 @@ function SaveStatus({ state }: { state: SaveState }) {
   );
 }
 
-function ProgressNavigator({
+function StackTrail({
+  current,
+  furthest,
+  onStep,
+  dashboard,
+}: {
+  current: number;
+  furthest: number;
+  onStep: (index: number) => void;
+  dashboard: () => void;
+}) {
+  const chapter =
+    chapterRanges.find((entry) => current >= entry.start && current <= entry.end) ??
+    chapterRanges[0];
+  return (
+    <nav className="stack-trail" aria-label="You are here">
+      <button onClick={dashboard}>My applications</button>
+      <ChevronRight aria-hidden="true" />
+      {chapter.label !== steps[current].label && (
+        <>
+          <button
+            onClick={() => onStep(chapter.start)}
+            disabled={chapter.start > furthest}
+          >
+            {chapter.label}
+          </button>
+          <ChevronRight aria-hidden="true" />
+        </>
+      )}
+      <b aria-current="step">{steps[current].label}</b>
+      <small>
+        Stage {current + 1} of {steps.length}
+      </small>
+    </nav>
+  );
+}
+
+function StageStack({
   current,
   furthest,
   onStep,
@@ -568,86 +630,231 @@ function ProgressNavigator({
   furthest: number;
   onStep: (index: number) => void;
 }) {
+  const track = useRef<HTMLElement>(null);
+  useEffect(() => {
+    track.current
+      ?.querySelector<HTMLElement>('[aria-current="step"]')
+      ?.scrollIntoView({ inline: "center", block: "nearest" });
+  }, [current]);
   return (
-    <div className="progress-wrap">
-      <div className="chapters" aria-hidden="true">
-        {chapterRanges.map((chapter) => (
-          <span
-            key={chapter.label}
-            style={{ gridColumn: `${chapter.start + 1}/${chapter.end + 2}` }}
+    <nav ref={track} className="stage-stack" aria-label="Application stages">
+      {chapterRanges.map((entry) => {
+        const stages = steps.slice(entry.start, entry.end + 1);
+        const done = stages.filter(
+          (_, offset) => entry.start + offset < current,
+        ).length;
+        const active = current >= entry.start && current <= entry.end;
+        return (
+          <section
+            key={entry.label}
+            className={`stack-chapter${active ? " active" : ""}${
+              done === stages.length ? " complete" : ""
+            }`}
+            style={{ flexGrow: stages.length }}
           >
-            {chapter.label}
-          </span>
-        ))}
-      </div>
-      <nav className="step-nav" aria-label="Application stages">
-        {steps.map((step, index) => {
-          const Icon = step.icon;
-          return (
-            <button
-              key={step.id}
-              className={
-                index === current
-                  ? "current"
-                  : index < current
-                    ? "complete"
-                    : ""
-              }
-              disabled={index > furthest}
-              onClick={() => onStep(index)}
-              aria-current={index === current ? "step" : undefined}
-            >
-              <span>{index < current ? <Check /> : <Icon />}</span>
-              <b>{step.short}</b>
-              <small>{index + 1}</small>
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+            <p className="stack-chapter-head">
+              <b>{entry.label}</b>
+              <small>
+                {done} of {stages.length}
+              </small>
+            </p>
+            <div className="stack-stages">
+              {stages.map((step, offset) => {
+                const index = entry.start + offset;
+                const Icon = step.icon;
+                return (
+                  <button
+                    key={step.id}
+                    className={
+                      index === current
+                        ? "current"
+                        : index < current
+                          ? "complete"
+                          : ""
+                    }
+                    disabled={index > furthest}
+                    onClick={() => onStep(index)}
+                    aria-current={index === current ? "step" : undefined}
+                    title={`Stage ${index + 1} · ${step.label}`}
+                  >
+                    <span aria-hidden="true">
+                      {index < current ? <Check /> : <Icon />}
+                    </span>
+                    <b>{step.short}</b>
+                    <small>{index + 1}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
+    </nav>
   );
 }
 
+type RailItem = {
+  id: string;
+  label: string;
+  hint: string;
+  detail?: string;
+  icon: LucideIcon;
+  onClick: () => void;
+  active: boolean;
+  disabled?: boolean;
+};
+
 function Rail({
+  view,
   current,
-  saveExit,
+  furthest,
+  submitted,
+  applicant,
+  collapsed,
+  toggleCollapsed,
   dashboard,
+  resume,
   documents,
+  appointment,
   help,
+  signOut,
 }: {
+  view: View;
   current: number;
-  saveExit: () => void;
+  furthest: number;
+  submitted: boolean;
+  applicant: string;
+  collapsed: boolean;
+  toggleCollapsed: () => void;
   dashboard: () => void;
+  resume: () => void;
   documents: () => void;
+  appointment: () => void;
   help: () => void;
+  signOut: () => void;
 }) {
+  const inApplication = view === "application";
+  const applicationItems: RailItem[] = [
+    {
+      id: "current",
+      label: "Current stage",
+      hint: `Return to ${steps[current].label}`,
+      detail: `Stage ${current + 1} of ${steps.length} · ${steps[current].label}`,
+      icon: FileText,
+      onClick: resume,
+      active: inApplication && current !== 5 && current !== 7,
+    },
+    {
+      id: "documents",
+      label: "Documents",
+      hint: "Checklist and digital-sharing status",
+      icon: Store,
+      onClick: documents,
+      active: inApplication && current === 5,
+    },
+    {
+      id: "appointment",
+      label: "Appointment",
+      hint:
+        furthest < 7
+          ? "Opens after the mock submission"
+          : "Centre, day and slot",
+      icon: CalendarDays,
+      onClick: appointment,
+      active: inApplication && current === 7,
+      disabled: furthest < 7,
+    },
+    {
+      id: "help",
+      label: "Help for this stage",
+      hint: inApplication
+        ? `Guidance for ${steps[current].label}`
+        : "Open an application for stage guidance",
+      icon: HelpCircle,
+      onClick: help,
+      active: false,
+      disabled: !inApplication,
+    },
+  ];
+  const initials =
+    applicant
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join("")
+      .toUpperCase() || "MA";
+  const renderItem = (item: RailItem) => {
+    const Icon = item.icon;
+    return (
+      <button
+        key={item.id}
+        onClick={item.onClick}
+        disabled={item.disabled}
+        className={item.active ? "active" : undefined}
+        aria-current={item.active ? "page" : undefined}
+        aria-label={item.label}
+        title={collapsed ? `${item.label} — ${item.hint}` : item.hint}
+      >
+        <Icon aria-hidden="true" />
+        <span className="rail-label">
+          {item.label}
+          {item.detail && <small>{item.detail}</small>}
+        </span>
+      </button>
+    );
+  };
   return (
-    <aside className="app-rail">
-      <Brand small />
+    <aside className={collapsed ? "app-rail collapsed" : "app-rail"}>
+      <div className="rail-head">
+        <Brand small />
+        <button
+          className="rail-collapse"
+          onClick={toggleCollapsed}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? "Expand the sidebar" : "Collapse the sidebar"}
+          title={collapsed ? "Expand the sidebar" : "Collapse the sidebar"}
+        >
+          {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+        </button>
+      </div>
       <div className="application-summary">
         <span>Fresh ordinary passport</span>
-        <strong>Draft · Stage {current + 1} of 9</strong>
+        <strong>
+          {submitted ? "Submitted" : "Draft"} · Stage {current + 1} of{" "}
+          {steps.length}
+        </strong>
       </div>
-      <nav aria-label="Application navigation">
-        <button onClick={dashboard}>
-          <Home />
-          My applications
-        </button>
-        <button onClick={documents}>
-          <Store />
-          Documents
-        </button>
-        <button onClick={help}>
-          <HelpCircle />
-          Help for this stage
-        </button>
+      <nav aria-label="Quick access">
+        {renderItem({
+          id: "applications",
+          label: "My applications",
+          hint: "Every application with its status and stage",
+          icon: Home,
+          onClick: dashboard,
+          active: view === "dashboard",
+        })}
+        <p className="rail-group">This application</p>
+        {applicationItems.map(renderItem)}
       </nav>
       <div className="rail-bottom">
-        <button onClick={saveExit}>
-          <LogOut />
-          Save & exit
+        <div className="rail-account" title={`${applicant} · mock account`}>
+          <span className="rail-avatar" aria-hidden="true">
+            {initials}
+          </span>
+          <span className="rail-label">
+            {applicant}
+            <small>Mock account</small>
+          </span>
+        </div>
+        <button
+          onClick={signOut}
+          aria-label="Sign out"
+          title="Sign out of the mock account"
+        >
+          <LogOut aria-hidden="true" />
+          <span className="rail-label">Sign out</span>
         </button>
-        <p>Your draft is saved before you leave.</p>
       </div>
     </aside>
   );
@@ -699,62 +906,130 @@ function HelpDialog({
 }
 
 function ApplicationShell({
+  view,
   current,
   furthest,
   saveState,
+  submitted,
+  applicant,
   onStep,
   dashboard,
   documents,
   saveExit,
+  signOut,
   children,
 }: {
+  view: View;
   current: number;
   furthest: number;
   saveState: SaveState;
+  submitted: boolean;
+  applicant: string;
   onStep: (n: number) => void;
   dashboard: () => void;
   documents: () => void;
   saveExit: () => void;
+  signOut: () => void;
   children: ReactNode;
 }) {
   const [help, setHelp] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem(RAIL_KEY) === "collapsed",
+  );
+  useEffect(() => {
+    localStorage.setItem(RAIL_KEY, collapsed ? "collapsed" : "expanded");
+  }, [collapsed]);
+  const inApplication = view === "application";
+  const closeAnd = (action: () => void) => () => {
+    setMenuOpen(false);
+    action();
+  };
   return (
-    <div className="workspace">
+    <div className={collapsed ? "workspace rail-collapsed" : "workspace"}>
       <Rail
+        view={view}
         current={current}
+        furthest={furthest}
+        submitted={submitted}
+        applicant={applicant}
+        collapsed={collapsed}
+        toggleCollapsed={() => setCollapsed((old) => !old)}
         dashboard={dashboard}
+        resume={() => onStep(current)}
         documents={documents}
+        appointment={() => onStep(7)}
         help={() => setHelp(true)}
-        saveExit={saveExit}
+        signOut={signOut}
       />
       <div className="workspace-body">
         <header className="workspace-header">
-          <div className="mobile-brand">
-            <Brand small />
+          <div className="header-top">
+            <div className="mobile-brand">
+              <Brand small />
+            </div>
+            {inApplication ? (
+              <StackTrail
+                current={current}
+                furthest={furthest}
+                onStep={onStep}
+                dashboard={dashboard}
+              />
+            ) : (
+              <nav className="stack-trail" aria-label="You are here">
+                <b aria-current="page">My applications</b>
+                <small>Mock account · {applicant}</small>
+              </nav>
+            )}
+            <div className="header-state">
+              {inApplication ? (
+                <>
+                  <div
+                    className={
+                      submitted ? "reference-block" : "reference-block pending"
+                    }
+                  >
+                    <span>
+                      {submitted ? "Application reference" : "Draft application"}
+                    </span>
+                    <strong>
+                      {submitted
+                        ? applicationReference
+                        : "Reference issued on submission"}
+                    </strong>
+                  </div>
+                  <SaveStatus state={saveState} />
+                  <Button variant="outline" size="sm" onClick={saveExit}>
+                    <LogOut />
+                    Save &amp; exit
+                  </Button>
+                </>
+              ) : (
+                <Button size="sm" onClick={() => onStep(current)}>
+                  Resume {steps[current].short}
+                  <ArrowRight />
+                </Button>
+              )}
+            </div>
+            <Button
+              className="mobile-menu"
+              variant="outline"
+              size="icon"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open application menu"
+            >
+              <Menu />
+            </Button>
           </div>
-          <Button
-            className="mobile-menu"
-            variant="outline"
-            size="icon"
-            onClick={() => setMenuOpen(true)}
-            aria-label="Open application menu"
-          >
-            <Menu />
-          </Button>
-          <div>
-            <span>Application reference</span>
-            <strong>FP-MOCK-2026-0148</strong>
-          </div>
-          <SaveStatus state={saveState} />
+          {inApplication && (
+            <StageStack current={current} furthest={furthest} onStep={onStep} />
+          )}
         </header>
         <PrototypeNotice compact />
-        <ProgressNavigator
-          current={current}
-          furthest={furthest}
-          onStep={onStep}
-        />
-        <main id="main-content" className="step-main">
+        <main
+          id="main-content"
+          className={inApplication ? "step-main" : "list-main"}
+        >
           {children}
         </main>
       </div>
@@ -763,31 +1038,49 @@ function ApplicationShell({
           <SheetHeader>
             <SheetTitle>Application menu</SheetTitle>
             <SheetDescription>
-              Draft · Stage {current + 1} of 9
+              {submitted ? "Submitted" : "Draft"} · Stage {current + 1} of{" "}
+              {steps.length}
             </SheetDescription>
           </SheetHeader>
           <div className="mobile-nav">
-            <Button variant="ghost" onClick={dashboard}>
+            <Button variant="ghost" onClick={closeAnd(dashboard)}>
               <Home />
               My applications
             </Button>
-            <Button variant="ghost" onClick={documents}>
+            <Button variant="ghost" onClick={closeAnd(() => onStep(current))}>
+              <FileText />
+              Current stage
+            </Button>
+            <Button variant="ghost" onClick={closeAnd(documents)}>
               <Store />
               Documents
             </Button>
             <Button
               variant="ghost"
-              onClick={() => {
-                setMenuOpen(false);
-                setHelp(true);
-              }}
+              disabled={furthest < 7}
+              onClick={closeAnd(() => onStep(7))}
+            >
+              <CalendarDays />
+              Appointment
+            </Button>
+            <Button
+              variant="ghost"
+              disabled={!inApplication}
+              onClick={closeAnd(() => setHelp(true))}
             >
               <HelpCircle />
               Help for this stage
             </Button>
-            <Button variant="ghost" onClick={saveExit}>
-              <LogOut />
-              Save & exit
+            {inApplication && (
+              <Button variant="ghost" onClick={closeAnd(saveExit)}>
+                <LogOut />
+                Save &amp; exit
+              </Button>
+            )}
+            <Separator />
+            <Button variant="ghost" onClick={closeAnd(signOut)}>
+              <UserRound />
+              Sign out
             </Button>
           </div>
         </SheetContent>
@@ -1422,13 +1715,20 @@ function ReviewStep({ draft, update, next, back, jump }: StepProps) {
   const items = readinessItems(draft);
   const blocked =
     items.some((item) => item.blocking) || draft.legalCheck !== "no";
+  const submit = () => {
+    update("submitted", true);
+    toast.success(
+      `Mock application submitted. Reference ${applicationReference} issued.`,
+    );
+    next();
+  };
   return (
     <StepFrame
       eyebrow="Review & submit"
       title="Review your application"
       intro="Check the consequential details and resolve preparation issues before the declaration appears."
       back={back}
-      next={next}
+      next={submit}
       nextLabel="Submit mock application"
       nextDisabled={blocked || !draft.declaration}
     >
@@ -1705,7 +2005,7 @@ function ReadyStep({
           <dl>
             <div>
               <dt>Reference</dt>
-              <dd>FP-MOCK-2026-0148</dd>
+              <dd>{applicationReference}</dd>
             </div>
             <div>
               <dt>Applicant</dt>
@@ -1757,83 +2057,273 @@ function ReadyStep({
   );
 }
 
-function Dashboard({
-  current,
-  resume,
-  documents,
-  restart,
+function StatusPill({
+  tone,
+  children,
 }: {
-  current: number;
-  resume: () => void;
-  documents: () => void;
-  restart: () => void;
+  tone: ApplicationTone;
+  children: ReactNode;
 }) {
+  return <span className={`status-pill ${tone}`}>{children}</span>;
+}
+
+function StageCell({ record }: { record: ApplicationRecord }) {
+  if (record.stageIndex === null)
+    return (
+      <span className="stage-cell">
+        <b>{record.stage}</b>
+        <small>No stage remains</small>
+      </span>
+    );
   return (
-    <div className="dashboard-page">
-      <header className="dashboard-header">
-        <Brand />
-        <Button variant="ghost" onClick={restart}>
-          Sign out
-        </Button>
-      </header>
-      <PrototypeNotice compact />
-      <main className="dashboard-main">
-        <div className="dashboard-heading">
+    <span className="stage-cell">
+      <b>{record.stage}</b>
+      <small>
+        Stage {record.stageIndex + 1} of {record.totalStages}
+      </small>
+      <span className="stage-meter" aria-hidden="true">
+        <span
+          style={{
+            width: `${((record.stageIndex + 1) / record.totalStages) * 100}%`,
+          }}
+        />
+      </span>
+    </span>
+  );
+}
+
+function ApplicationsView({
+  draft,
+  current,
+  open,
+  newApplication,
+}: {
+  draft: ApplicationDraft;
+  current: number;
+  open: (record: ApplicationRecord) => void;
+  newApplication: () => void;
+}) {
+  const [filter, setFilter] = useState<ApplicationFilterId>("all");
+  const [layout, setLayout] = useState<"table" | "cards">("table");
+  const records = useMemo(
+    () => [liveApplication(draft, current), ...sampleApplications],
+    [draft, current],
+  );
+  const shown =
+    filter === "all"
+      ? records
+      : records.filter((record) => record.group === filter);
+  return (
+    <div className="applications">
+      <div className="applications-heading">
+        <div>
           <span className="eyebrow">My applications</span>
-          <h1>Continue where you left off.</h1>
-          <p>Your synthetic draft is stored on this device only.</p>
+          <h1>Everything you have started.</h1>
+          <p>
+            Status, stage and the office handling each application. The fresh
+            ordinary passport is your working draft; the other rows are sample
+            records in this prototype.
+          </p>
         </div>
-        <Card className="draft-card">
-          <CardHeader>
-            <div>
-              <Badge>Draft</Badge>
-              <CardTitle><h2>Fresh ordinary passport</h2></CardTitle>
-              <CardDescription>FP-MOCK-2026-0148</CardDescription>
-            </div>
-            <span className="draft-step">
-              Stage {current + 1} of 9<br />
-              <strong>{steps[current].label}</strong>
-            </span>
-          </CardHeader>
-          <CardContent>
-            <div className="dashboard-progress">
-              <div
-                style={{ width: `${((current + 1) / steps.length) * 100}%` }}
-              />
-            </div>
-            <div className="dashboard-actions">
-              <Button onClick={resume}>
-                Resume {steps[current].short}
-                <ArrowRight />
-              </Button>
-              <Button variant="outline" onClick={documents}>
-                <Store />
-                View document checklist
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        <section className="dashboard-help">
-          <h2>What can I do here?</h2>
-          <div>
-            <article>
-              <Store />
-              <b>Resume safely</b>
-              <p>Return to the exact application stage shown above.</p>
-            </article>
-            <article>
-              <FileCheck2 />
-              <b>Prepare documents</b>
-              <p>See document status without searching a separate advisor.</p>
-            </article>
-            <article>
-              <CircleHelp />
-              <b>Get help</b>
-              <p>Contextual guidance stays attached to each stage.</p>
-            </article>
-          </div>
-        </section>
-      </main>
+        <Button variant="outline" onClick={newApplication}>
+          <Plus />
+          Start another application
+        </Button>
+      </div>
+      <div className="applications-toolbar">
+        <div className="filter-chips" role="group" aria-label="Filter applications">
+          {applicationFilters.map((entry) => {
+            const count =
+              entry.id === "all"
+                ? records.length
+                : records.filter((record) => record.group === entry.id).length;
+            return (
+              <button
+                key={entry.id}
+                className={filter === entry.id ? "selected" : ""}
+                aria-pressed={filter === entry.id}
+                onClick={() => setFilter(entry.id)}
+              >
+                {entry.label}
+                <small>{count}</small>
+              </button>
+            );
+          })}
+        </div>
+        <div className="segmented" role="group" aria-label="List layout">
+          <button
+            className={layout === "table" ? "selected" : ""}
+            aria-pressed={layout === "table"}
+            onClick={() => setLayout("table")}
+          >
+            <Table2 />
+            Table
+          </button>
+          <button
+            className={layout === "cards" ? "selected" : ""}
+            aria-pressed={layout === "cards"}
+            onClick={() => setLayout("cards")}
+          >
+            <LayoutGrid />
+            Cards
+          </button>
+        </div>
+      </div>
+      {shown.length === 0 ? (
+        <p className="applications-empty">
+          No applications in this view. Choose another filter.
+        </p>
+      ) : layout === "table" ? (
+        <div className="table-wrap">
+          <table className="applications-table">
+            <caption className="sr-only">
+              Applications with status, stage, appointment, office and next
+              action
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Application</th>
+                <th scope="col">Status</th>
+                <th scope="col">Stage</th>
+                <th scope="col">Appointment</th>
+                <th scope="col">Office &amp; contact</th>
+                <th scope="col">Next action</th>
+                <th scope="col">
+                  <span className="sr-only">Open application</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map((record) => (
+                <tr key={record.id} className={record.live ? "live" : undefined}>
+                  <th scope="row">
+                    <b>{record.service}</b>
+                    <small>
+                      {record.applicant}
+                      {record.relation ? ` · ${record.relation}` : ""}
+                    </small>
+                    <small className="muted">
+                      {record.reference ?? "Reference issued on submission"}
+                    </small>
+                  </th>
+                  <td>
+                    <StatusPill tone={record.tone}>{record.status}</StatusPill>
+                    <small className="muted">{record.updated}</small>
+                  </td>
+                  <td>
+                    <StageCell record={record} />
+                  </td>
+                  <td>
+                    {record.appointment ?? (
+                      <span className="muted">Not booked</span>
+                    )}
+                  </td>
+                  <td>
+                    <b>{record.office}</b>
+                    <small className="muted">{record.contact}</small>
+                  </td>
+                  <td>{record.nextAction}</td>
+                  <td className="row-action">
+                    {record.live ? (
+                      <Button size="sm" onClick={() => open(record)}>
+                        Resume
+                        <ArrowRight />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => open(record)}
+                      >
+                        View
+                      </Button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="applications-cards">
+          {shown.map((record) => (
+            <Card
+              key={record.id}
+              className={record.live ? "application-card live" : "application-card"}
+            >
+              <CardHeader>
+                <div>
+                  <StatusPill tone={record.tone}>{record.status}</StatusPill>
+                  <CardTitle>
+                    <h2>{record.service}</h2>
+                  </CardTitle>
+                  <CardDescription>
+                    {record.applicant}
+                    {record.relation ? ` · ${record.relation}` : ""} ·{" "}
+                    {record.reference ?? "Reference issued on submission"}
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <StageCell record={record} />
+                <dl className="record-facts">
+                  <div>
+                    <dt>Appointment</dt>
+                    <dd>{record.appointment ?? "Not booked"}</dd>
+                  </div>
+                  <div>
+                    <dt>Office &amp; contact</dt>
+                    <dd>
+                      {record.office}
+                      <small>{record.contact}</small>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Next action</dt>
+                    <dd>{record.nextAction}</dd>
+                  </div>
+                  <div>
+                    <dt>Last update</dt>
+                    <dd>{record.updated}</dd>
+                  </div>
+                </dl>
+              </CardContent>
+              <CardFooter>
+                {record.live ? (
+                  <Button onClick={() => open(record)}>
+                    Resume {steps[current].short}
+                    <ArrowRight />
+                  </Button>
+                ) : (
+                  <Button variant="outline" onClick={() => open(record)}>
+                    View sample record
+                  </Button>
+                )}
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+      <section className="dashboard-help">
+        <h2>What can I do here?</h2>
+        <div>
+          <article>
+            <Store />
+            <b>Resume safely</b>
+            <p>Return to the exact application stage shown in the list.</p>
+          </article>
+          <article>
+            <FileCheck2 />
+            <b>Prepare documents</b>
+            <p>See document status without searching a separate advisor.</p>
+          </article>
+          <article>
+            <CircleHelp />
+            <b>Get help</b>
+            <p>Contextual guidance stays attached to each stage.</p>
+          </article>
+        </div>
+      </section>
     </div>
   );
 }
@@ -1875,6 +2365,17 @@ export default function App() {
     setFurthest(0);
     setView("start");
   };
+  const openApplication = (record: ApplicationRecord) => {
+    if (record.live) {
+      go(current);
+      return;
+    }
+    toast.info(
+      `${record.service} is a sample record. Only the fresh ordinary passport draft is interactive in this prototype.`,
+    );
+  };
+  const applicant =
+    `${draft.givenName} ${draft.surname}`.trim() || "Mock applicant";
   const props = useMemo(
     () => ({ draft, update, next, back, jump: (n: number) => go(n) }),
     [draft, current],
@@ -1900,57 +2401,64 @@ export default function App() {
         <Toaster />
       </>
     );
-  if (view === "dashboard")
-    return (
-      <>
-        <Dashboard
-          current={current}
-          resume={() => go(current)}
-          documents={() => go(5)}
-          restart={restart}
-        />
-        <Toaster />
-      </>
-    );
   let content: ReactNode;
-  switch (current) {
-    case 0:
-      content = <PersonalStep {...props} />;
-      break;
-    case 1:
-      content = <FamilyStep {...props} />;
-      break;
-    case 2:
-      content = <ContactsStep {...props} />;
-      break;
-    case 3:
-      content = <AddressStep {...props} />;
-      break;
-    case 4:
-      content = <OptionsStep {...props} />;
-      break;
-    case 5:
-      content = <DocumentsStep {...props} />;
-      break;
-    case 6:
-      content = <ReviewStep {...props} />;
-      break;
-    case 7:
-      content = <AppointmentStep {...props} />;
-      break;
-    default:
-      content = <ReadyStep {...props} restart={restart} />;
+  if (view === "dashboard") {
+    content = (
+      <ApplicationsView
+        draft={draft}
+        current={current}
+        open={openApplication}
+        newApplication={() =>
+          toast.info(
+            "This prototype carries one working application. A production service would start a new one here.",
+          )
+        }
+      />
+    );
+  } else {
+    switch (current) {
+      case 0:
+        content = <PersonalStep {...props} />;
+        break;
+      case 1:
+        content = <FamilyStep {...props} />;
+        break;
+      case 2:
+        content = <ContactsStep {...props} />;
+        break;
+      case 3:
+        content = <AddressStep {...props} />;
+        break;
+      case 4:
+        content = <OptionsStep {...props} />;
+        break;
+      case 5:
+        content = <DocumentsStep {...props} />;
+        break;
+      case 6:
+        content = <ReviewStep {...props} />;
+        break;
+      case 7:
+        content = <AppointmentStep {...props} />;
+        break;
+      default:
+        content = <ReadyStep {...props} restart={restart} />;
+    }
   }
   return (
     <>
       <ApplicationShell
+        view={view}
         current={current}
         furthest={furthest}
         saveState={saveState}
+        submitted={draft.submitted}
+        applicant={applicant}
         onStep={(n) => go(n)}
         dashboard={() => setView("dashboard")}
         documents={() => go(5)}
         saveExit={saveExit}
+        signOut={restart}
       >
         {content}
       </ApplicationShell>
