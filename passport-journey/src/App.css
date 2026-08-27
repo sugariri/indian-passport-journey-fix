@@ -270,8 +270,14 @@ svg {
   border-left: 0;
 }
 .segmented button.selected {
-  color: white;
-  background: var(--civic-blue);
+  /* Was solid var(--civic-blue) - the only saturated fill in the card, which
+     made choosing a location look like the primary action. The filter now
+     reads as answered rather than as a call to act; the route options below
+     carry the emphasis. */
+  color: var(--civic-navy);
+  font-weight: 600;
+  background: var(--soft-blue);
+  box-shadow: inset 0 -2px 0 var(--civic-blue);
 }
 .route-section {
   display: grid;
@@ -304,6 +310,7 @@ svg {
 .route.primary {
   border: 2px solid var(--civic-blue);
   background: var(--soft-blue);
+  box-shadow: 0 1px 3px rgb(15 98 254 / 0.14);
 }
 .route.primary:hover {
   background: #dbeafe;
@@ -391,7 +398,9 @@ svg {
   gap: 4rem;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 3.5rem 3rem;
+  /* Trimmed from 3.5rem so the three checks clear a 1019px viewport rather
+     than beginning just below it. */
+  padding: 2.5rem 3rem 3rem;
 }
 .prepare-section .eyebrow {
   color: var(--civic-gold);
@@ -399,36 +408,52 @@ svg {
 .prepare-section h2 {
   margin: 0;
   color: var(--civic-navy);
-  font-size: 2.2rem;
-  line-height: 1.1;
+  font-size: 1.9rem;
+  line-height: 1.15;
 }
 .prepare-section > div:first-child p {
   color: var(--muted-ink);
   line-height: 1.6;
 }
-.prepare-grid {
+.prepare-steps {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
   background: var(--line);
   border: 1px solid var(--line);
 }
-.prepare-grid article {
-  min-height: 13rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  padding: 1.5rem;
+.prepare-steps li {
+  /* No min-height. The 13rem floor the old cards carried was most of what
+     pushed this section below the fold; a row is now as tall as its own copy. */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 0.85rem;
+  padding: 1.3rem;
   background: white;
 }
-.prepare-grid svg {
-  color: var(--civic-gold);
-  width: 1.5rem;
-  height: 1.5rem;
+.prepare-step-n {
+  display: grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border: 1px solid var(--civic-gold);
+  border-radius: 999px;
+  color: var(--civic-navy);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
-.prepare-grid p {
-  margin: 0;
+.prepare-steps b {
+  color: var(--civic-navy);
+}
+.prepare-steps p {
+  margin: 0.3rem 0 0;
   color: var(--muted-ink);
+  font-size: 0.9rem;
   line-height: 1.5;
 }
 
@@ -821,24 +846,29 @@ svg {
   margin: 2.5rem auto 6rem;
 }
 .step-heading {
-  max-width: 760px;
-  margin-bottom: 1.5rem;
+  max-width: 64ch;
+  margin-bottom: 1.25rem;
 }
 .step-heading > span {
   color: var(--civic-blue);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 .step-heading h1 {
+  /* Was clamp(2rem, 4vw, 3.25rem) at weight 400, which rendered near 52px
+     above a 20px section heading: two levels far enough apart to stop reading
+     as one ladder, and a page title louder than the form it introduces. */
   margin: 0;
   color: var(--civic-navy);
-  font-size: clamp(2rem, 4vw, 3.25rem);
-  font-weight: 400;
-  letter-spacing: -0.035em;
+  font-size: clamp(1.75rem, 2.4vw, 2.25rem);
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
 }
 .step-heading p {
-  margin: 0.75rem 0 0;
+  margin: 0.5rem 0 0;
+  max-width: 58ch;
   color: var(--muted-ink);
-  font-size: 1rem;
+  font-size: 0.975rem;
   line-height: 1.55;
 }
 .form-card {
@@ -994,7 +1024,11 @@ svg {
 }
 .section-heading p {
   margin: 0.35rem 0 0;
+  /* Without a measure this ran the full card width, so a one-line rationale
+     read as wide as the heading above it. */
+  max-width: 62ch;
   color: var(--muted-ink);
+  font-size: 0.9rem;
   line-height: 1.45;
 }
 .form-grid {
@@ -1060,6 +1094,21 @@ svg {
 .radio-card small {
   color: var(--muted-ink);
   line-height: 1.35;
+}
+/* Says where an option came from, for options this prototype introduced. Its
+   absence is not a claim that an option is official - only that we are not
+   asserting either way here. */
+.option-origin {
+  justify-self: start;
+  margin-top: 0.15rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px dashed var(--line);
+  color: var(--muted-ink);
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .inline-question {
   display: grid;
@@ -1457,11 +1506,8 @@ svg {
     gap: 1rem;
     padding: 1.5rem 1rem;
   }
-  .prepare-grid {
+  .prepare-steps {
     grid-template-columns: 1fr;
-  }
-  .prepare-grid article {
-    min-height: 0;
   }
   .gateway-main {
     grid-template-columns: 1fr;
@@ -1520,7 +1566,7 @@ svg {
     margin: 1.5rem auto 4rem;
   }
   .step-heading h1 {
-    font-size: 2.3rem;
+    font-size: 1.75rem;
   }
   .form-card [data-slot="card-content"] {
     padding: 1.1rem;
